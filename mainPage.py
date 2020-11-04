@@ -60,50 +60,70 @@ def resume_df(df):
 #                          BUILD APP                               #########
 ####################################################################
 
+#access to external css stylesheet
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
+#app initialization
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 # Create app layout
 
 app.layout = html.Div(children=[
     html.Div(
         [
-            html.H3(
+            #first title
+            html.H1(
                 "Interface d’analyse de données",
                 style={"margin-bottom": "0px", "text-align":"center"}
                 ),
-            html.H5(
+            #authors
+            html.H6(
                 "Clément Le Padellec - Adrien Pavoine - Amélie Picard", style={"margin-top": "0px", "text-align":"center"}
-                )
+                ),
+            #button link to DRIVE with instructions
+            html.A(
+                html.Button("Learn More About Our Project", id="learn-more-button",style={'width': '100%', "text-align":"center"}),
+                href="https://drive.google.com/drive/folders/1qPSh1zW8bdjgdiC5Bz5O2bpEjUCdQ_Ig",
+                
+                ),
             ]
         ),
-    html.A(
-        html.Button("Learn More About Our Project", id="learn-more-button",style={"margin-bottom": "0px", "text-align":"center"}),
-        href="https://drive.google.com/drive/folders/1qPSh1zW8bdjgdiC5Bz5O2bpEjUCdQ_Ig",
-        
-        ),
-    dcc.Upload(
-        id='upload-data',
-        children=html.Div([
-            'Drag and Drop or ',
-            html.A('Select Files')
-        ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        },
-        # Allow multiple files to be uploaded
-        multiple=True
-    ),
-    html.Div(id='output-data-upload'),
+    html.Br(),
+    html.Hr(),
+    html.Hr(),
+    html.Br(),
+    html.Div(
+        [
+            
+            html.H3(
+                "Import des données",
+                style={"margin-bottom": "0px", "text-align":"center"}
+                ),            
 
 
+            #upload csv file with comma as separator
+            dcc.Upload(
+                #define id (for update)
+                id='upload-data',
+                children=html.Div([
+                    'Drag and Drop or ',
+                    html.A('Select Files')
+                ]),
+                style={
+                    'width': '100%',
+                    'height': '60px',
+                    'lineHeight': '60px',
+                    'borderWidth': '1px',
+                    'borderStyle': 'dashed',
+                    'borderRadius': '5px',
+                    'textAlign': 'center',
+                },
+                # Allow multiple files to be uploaded (remove ?)
+                multiple=True
+            ),
+            html.Div(id='output-data-upload'),
+
+            ]
+        )
     ]
 )
 
@@ -111,7 +131,7 @@ app.layout = html.Div(children=[
 #                         UPDATE FONCTIONS                         #########
 ####################################################################
 
-#1# Callback and Update import and vizualisation
+#1# Callback and Update for import and vizualisation
 
 # import & print data
 def parse_contents(contents, filename):
@@ -120,7 +140,7 @@ def parse_contents(contents, filename):
     # Assume that the user uploaded a CSV file with comma as sep
     df = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep=',')
     return html.Div([
-        html.H5("Prévisualisation des données",style={"text-align":"center"}),
+        html.H7("Prévisualisation des données",style={"text-align":"center"}),
         dash_table.DataTable(
             data=df[0:10].to_dict('records'),
             columns=[{'name': i, 'id': i} for i in df.columns]
