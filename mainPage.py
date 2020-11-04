@@ -140,7 +140,7 @@ def parse_contents(contents, filename):
     # Assume that the user uploaded a CSV file with comma as sep
     df = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep=',')
     return html.Div([
-        html.H7("Prévisualisation des données",style={"text-align":"center"}),
+        html.H6("Prévisualisation des données",style={"text-align":"center"}),
         dash_table.DataTable(
             data=df[0:10].to_dict('records'),
             columns=[{'name': i, 'id': i} for i in df.columns]
