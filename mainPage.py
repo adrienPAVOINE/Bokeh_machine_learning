@@ -66,45 +66,34 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 # Create app layout
-app.layout = html.Div(
-    [
-        html.Div(
-            [
-                
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                html.H3(
-                                    "Interface d’analyse de données",
-                                    style={"margin-bottom": "0px", "text-align":"center"},
-                                ),
-                                html.H5(
-                                    "Clément Le Padellec - Adrien Pavoine - Amélie Picard", style={"margin-top": "0px", "text-align":"center"}
-                                ),
-                            ]
-                        )
-                    ],
-                    className="one-half column",
-                    id="title",
+
+app.layout = html.Div(children=[
+    html.Div(
+        [
+            html.H3(
+                "Interface d’analyse de données",
+                style={"margin-bottom": "0px", "text-align":"center"}
                 ),
-                html.Div(
-                    [
-                        html.A(
-                            html.Button("Learn More About Our Project", id="learn-more-button"),
-                            href="https://drive.google.com/drive/folders/1qPSh1zW8bdjgdiC5Bz5O2bpEjUCdQ_Ig",
-                        )
-                    ],
-                    className="one-third column",
-                    id="button",
-                ),
-            ],
-            id="header",
-            className="row flex-display",
-            style={"margin-bottom": "25px"},
-        )
+            html.H5(
+                "Clément Le Padellec - Adrien Pavoine - Amélie Picard", style={"margin-top": "0px", "text-align":"center"}
+                )
+            ]
+        ),
+    html.A(
+        html.Button("Learn More About Our Project", id="learn-more-button",style={"margin-bottom": "0px", "text-align":"center"}),
+        href="https://drive.google.com/drive/folders/1qPSh1zW8bdjgdiC5Bz5O2bpEjUCdQ_Ig",
+        
+        ),
+    html.H4(children='US Agriculture Exports (2011)',style={
+        'textAlign': 'center',}),
+    html.Label('Chemin du fichier'),
+    dcc.Input(id='path',value='', type='text'),
+    path=Input('path', 'value'),
+    df=import_csv(path),
+    print_df(df)
     ]
 )
+
 
 ####################################################################
 #                          RUN APP                                 #########
