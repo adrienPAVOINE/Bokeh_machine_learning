@@ -19,17 +19,15 @@ import plotly.express as px
 #Surement d'autres packages plotly à importer
 import pandas as pd
 import numpy as np
-
+from dash.dependencies import Input, Output, State
+import base64
+import dash_table
+import io
 
 ####################################################################
 #                          FONCTIONS                               #########
 ####################################################################
 #Brouillon, à organiser en modules.py plus tard
-
-#1#fonction d'import CSV, avec header et ',' comme séparateur
-def import_csv(file_path):
-    df = pd.read_csv('file_path',sep=',',header=True)
-    return df
 
 #2#fonction de test de la variable cible
 def test_var_cible(df,var_cible,var_type):
@@ -84,15 +82,64 @@ app.layout = html.Div(children=[
         href="https://drive.google.com/drive/folders/1qPSh1zW8bdjgdiC5Bz5O2bpEjUCdQ_Ig",
         
         ),
-    html.H4(children='US Agriculture Exports (2011)',style={
-        'textAlign': 'center',}),
-    html.Label('Chemin du fichier'),
-    dcc.Input(id='path',value='', type='text'),
-    path=Input('path', 'value'),
-    df=import_csv(path),
-    print_df(df)
+    dcc.Upload(
+        id='upload-data',
+        children=html.Div([
+            'Drag and Drop or ',
+            html.A('Select Files')
+        ]),
+        style={
+            'width': '100%',
+            'height': '60px',
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'dashed',
+            'borderRadius': '5px',
+            'textAlign': 'center',
+            'margin': '10px'
+        },
+        # Allow multiple files to be uploaded
+        multiple=True
+    ),
+    html.Div(id='output-data-upload'),
+
+
     ]
 )
+
+####################################################################
+#                         UPDATE FONCTIONS                         #########
+####################################################################
+
+#1# Callback and Update import and vizualisation
+
+# import & print data
+def parse_contents(contents, filename):
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    # Assume that the user uploaded a CSV file with comma as sep
+    df = pd.read_csv(io.StringIO(decoded.decode('utf-8')),sep=',')
+    return html.Div([
+        html.H5("Prévisualisation des données",style={"text-align":"center"}),
+        dash_table.DataTable(
+            data=df[0:10].to_dict('records'),
+            columns=[{'name': i, 'id': i} for i in df.columns]
+        ),
+        html.Hr(),  # horizontal line
+    ])
+
+#callback for update
+@app.callback(Output('output-data-upload', 'children'),
+              [Input('upload-data', 'contents')],
+              [State('upload-data', 'filename')])
+
+#update function
+def update_output(list_of_contents, list_of_names):
+    if list_of_contents is not None:
+        children = [
+            parse_contents(c, n) for c, n in
+            zip(list_of_contents, list_of_names)]
+        return children
 
 
 ####################################################################
