@@ -60,31 +60,43 @@ def resume_df(df):
 #                          BUILD APP                               #########
 ####################################################################
 
-#access to external css stylesheet
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 #app initialization
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__)
 # Create app layout
 
 app.layout = html.Div(children=[
     html.Div(
         [
-            #first title
-            html.H1(
-                "Interface d’analyse de données",
-                style={"margin-bottom": "0px", "text-align":"center"}
-                ),
-            #authors
-            html.H6(
-                "Clément Le Padellec - Adrien Pavoine - Amélie Picard", style={"margin-top": "0px", "text-align":"center"}
-                ),
-            #button link to DRIVE with instructions
-            html.A(
-                html.Button("Learn More About Our Project", id="learn-more-button",style={'width': '100%', "text-align":"center"}),
-                href="https://drive.google.com/drive/folders/1qPSh1zW8bdjgdiC5Bz5O2bpEjUCdQ_Ig",
-                
-                ),
+            # Banner display
+            html.Div(
+                className="header-title",
+                children=[
+                    html.H2(
+                        id="title",
+                        children="Interface d’analyse de données",
+                    ),
+                    html.Div(
+                        id="learn_more",
+                        children=[
+                            html.Img(className="logo", src=app.get_asset_url("logo.png"))
+                        ],
+                    ),
+                    html.Br(),                    
+                    html.H6(
+                        id="authors",
+                        children="Clément Le Padellec - Adrien Pavoine - Amélie Picard"
+                    ),
+                    html.Br(),
+                    #button link to DRIVE with instructions
+                    html.A(
+                        html.Button("Learn More About Our Project", id="learn-more-button",style={'width': '100%', "text-align":"center"}),
+                        href="https://drive.google.com/drive/folders/1qPSh1zW8bdjgdiC5Bz5O2bpEjUCdQ_Ig",
+                    ),
+
+                ],
+            ),
+  
             ]
         ),
     html.Br(),
