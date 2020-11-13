@@ -55,4 +55,19 @@ test3.Regression_log()
 
 
 
+from Classe_Reg import Algo_Var_Num
+
+
+df = pandas.read_csv("C:/Users/adrien/Downloads/AirQualityUCI.csv", sep=";" , decimal =",")
+
+df.info()
+
+test=Algo_Var_Num(df)
+test.Regression_line_multiple()
+
+test.K_Proches_Voisins_Reg()
+
+test.Reseau_Neurone()
+
+
 
