@@ -20,6 +20,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn.neural_network import MLPRegressor
 from sklearn.datasets import make_regression
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
 
 class Algo_Var_Num():
  
@@ -35,14 +37,14 @@ class Algo_Var_Num():
             size=round(len(self.df.values[:,-1])*0.3)
         #subdiviser les données en échantillons d'apprentissage et de test
         #Choix à l'utilisateur, taille de l'échantillon test : sinon le choix par défaut 70% 30%
-        dfTrain, dfTest = train_test_split(self.df,test_size=size,random_state=9)
+        self.dfTrain, self.dfTest = train_test_split(self.df,test_size=size,random_state=9)
         #print(dfTrain, dfTest)
         
         #Séparer X et Y :
-        self.yTrain=dfTrain.iloc[:,-1]
-        self.XTrain=dfTrain.iloc[:,0:(len(self.df.columns)-1)]
-        self.yTest=dfTest.iloc[:,-1]
-        self.XTest=dfTest.iloc[:,0:(len(self.df.columns)-1)]
+        self.yTrain=self.dfTrain.iloc[:,-1]
+        self.XTrain=self.dfTrain.iloc[:,0:(len(self.df.columns)-1)]
+        self.yTest=self.dfTest.iloc[:,-1]
+        self.XTest=self.dfTest.iloc[:,0:(len(self.df.columns)-1)]
         #print(self.df)
         
         #distribution des classes
@@ -129,7 +131,33 @@ class Algo_Var_Num():
         plt.title("Y_pred en bleue, y_test en rouge")
         plt.show()
         
-         
+    def Anova_Desequilibre(self):
+        ystr = str(self.yTrain.name)
+        var_qual = ''
+        for col in self.XTrain.columns: 
+            var_qual += str(col)
+            var_qual += '*'
+        var_qual = var_qual[:-1]
+        var = str(ystr + "~" + var_qual)
+        
+        lm = ols(var, data = self.dfTrain).fit()
+        table= sm.stats.anova_lm(lm)
+        print(table)
+        aov = sm.stats.anova_lm(lm, typ=2)
+        res = lm.resid 
+        fig = sm.qqplot(res, line='s')
+        plt.show()
+
+        pred = lm.predict(self.dfTest)
+    
+        y_test = self.dfTest[str(ystr)]
+        pred.iloc[np.argsort(y_test)]
+    
+        plt.plot(range(len(y_test)), pred.iloc[np.argsort(y_test)], color = "green") #Prédictions
+        plt.scatter(range(len(y_test)), np.sort(y_test), color = "red") #Données réelles
+        plt.title("Y_pred en vert, y_test en rouge")
+        plt.show()
+             
         
 
          
