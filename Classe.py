@@ -9,7 +9,9 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 from sklearn.tree import export_text
+from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
+from sklearn import model_selection
 import matplotlib.pyplot as plt
 import statsmodels as sm
 from statsmodels.tools import add_constant
@@ -34,10 +36,13 @@ class Algo_Var_Cat():
         #print(dfTrain, dfTest)
         
         #Séparer X et Y :
+        self.y=df.iloc[:,-1]
+        self.X=df.iloc[:,0:(len(self.df.columns)-1)]
         self.yTrain=dfTrain.iloc[:,-1]
         self.XTrain=dfTrain.iloc[:,0:(len(self.df.columns)-1)]
         self.yTest=dfTest.iloc[:,-1]
         self.XTest=dfTest.iloc[:,0:(len(self.df.columns)-1)]
+        
         #print(self.df)
         
         #distribution des classes
@@ -49,7 +54,7 @@ class Algo_Var_Cat():
     #-------------------------------------------------------------------------
     #Création de l'arbre de décision et de la prédiction
     #-------------------------------------------------------------------------
-    def Arbre_decision(self,nb_feuille=2):
+    def Arbre_decision(self,nb_feuille=2,nb_cross_val=10):
         #classe arbre de décision
         #instanciation - objet arbre de décision
         #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
@@ -113,13 +118,24 @@ class Algo_Var_Cat():
         #rapport général
         print(metrics.classification_report(self.yTest,yPred))
         
+        #-------------------------------------------------------------------------
+        #Validation croisée : 
+        #-------------------------------------------------------------------------
+        #évaluation en validation croisée : 
+        # paramètre par défaut : nb_cross_val=10
+        succes = model_selection.cross_val_score(dtree,self.X,self.y,cv=nb_cross_val,scoring='accuracy')
+        #détail des itérations
+        print(succes)
+        #moyenne des taux de succès = estimation du taux de succès en CV
+        print(succes.mean())
+        
     #-------------------------------------------------------------------------
     #Création de l'analyse discrinimante linéaire
     #-------------------------------------------------------------------------  
-    def Analyse_Discriminante(self):
+    def Analyse_Discriminante(self,nb_cross_val=10):
         
         #classe LDA
-        #instanciation
+        #instanciation 
         lda = LinearDiscriminantAnalysis()
         #apprentissage
         lda.fit(self.XTrain,self.yTrain)
@@ -148,11 +164,23 @@ class Algo_Var_Cat():
         
         #calcul des sensibilité (rappel) et précision par classe
         print(metrics.classification_report(self.yTest,ypred))
+        
+        #-------------------------------------------------------------------------
+        #Validation croisée : 
+        #-------------------------------------------------------------------------
+        #évaluation en validation croisée : 
+        # paramètre par défaut : nb_cross_val=10
+        succes = model_selection.cross_val_score(lda,self.X,self.y,cv=nb_cross_val,scoring='accuracy')
+        #détail des itérations
+        print(succes)
+        #moyenne des taux de succès = estimation du taux de succès en CV
+        print(succes.mean())
+
 
     #-------------------------------------------------------------------------
-    #Création de la regressionn logistiques
+    #Création de la regressionn logistiques binaire
     #-------------------------------------------------------------------------  
-    def Regression_log(self,alpha=0.1):
+    def Regression_log(self,alpha=0.1,nb_cross_val=10):
         #rajout d'une constante de valeur 1 dans la première colonne
         XTrainBis = sm.tools.add_constant(self.XTrain)
         #régression logistique - on passe la cible et les explicatives
@@ -301,7 +329,17 @@ class Algo_Var_Cat():
         #valeur de l'AUC
         aucSm = metrics.roc_auc_score(self.yTest,predProbaSm)
         print("AUC : %.4f" % (aucSm))
-         
         
+        #-------------------------------------------------------------------------
+        #Validation croisée : 
+        #-------------------------------------------------------------------------
+        lr2 = LogisticRegression()
+        #évaluation en validation croisée : 10 cross-validation
+        # paramètre par défaut : nb_cross_val=10
+        succes = model_selection.cross_val_score(lr2,self.X,self.y,cv=nb_cross_val,scoring='accuracy')
+        #détail des itérations
+        print(succes)
+        #moyenne des taux de succès = estimation du taux de succès en CV
+        print(succes.mean()) 
 
          
