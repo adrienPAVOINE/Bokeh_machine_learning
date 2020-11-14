@@ -106,6 +106,10 @@ def update():
         child_alg1.children[1]=data_table_new_df
         child_alg2.children[1]=data_table_new_df
         child_alg3.children[1]=data_table_new_df
+        if(var_type=='String'):
+            decision_tree_maker(new_df)
+        else:
+            reg_mult_maker(new_df) 
         
     multi_select_var.options=lst_expl
     text_for_target=str("<center><h4 > Votre variable cible est : "+str(menu.value)+"("+str(var_type)+")"+"</h4></center>")
@@ -150,16 +154,28 @@ onglet1= Panel(child=child_onglet1,title="Welcome !")
 #                    ONGLET 2 - ALGO N°1                           #######################
 ####################################################################
 
+#Arbre de décision (cas target QL)
+
+def decision_tree_maker(new_df):
+    print('a compléter')
+    
 x = np.arange(start=1, stop=6)
 x_exp = np.exp(x)
 fig2= figure(title='Fonction exponentielle', x_axis_label='Ascisses', y_axis_label='Ordonnées')
 fig2.circle(x, x_exp, legend_label="log x", line_width=2, line_color="green", color='green', size=5)
 
+
+
+#regression linéaire multiple (cas target QT)
+
+def reg_mult_maker(new_df):
+    obj=Algo_Var_Num(new_df)
+    child_alg1.children[2]=obj.Regression_line_multiple()
+    
 text_for_alg1=""
 your_alg1=Div(text=text_for_alg1)
 child_alg1=layout([your_alg1],[],[fig2])
 onglet2 = Panel(child=child_alg1, title="ALGO 1")
-
 ####################################################################
 #                    ONGLET 3 - ALGO N°2                           #######################
 ####################################################################

@@ -83,11 +83,11 @@ class Algo_Var_Num():
         plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
         plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
         plt.title("Y_pred en vert, y_test en rouge")
-        plt.show()
+        fig=plt.show()
         #validation croisée
         from sklearn.model_selection import cross_val_score
         print(cross_val_score(lin_reg_mod, self.X, self.y, cv=5))
-        
+        return fig
 
         
     #-------------------------------------------------------------------------
