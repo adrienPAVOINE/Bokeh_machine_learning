@@ -4,7 +4,13 @@ Created on Sat Nov  7 18:11:58 2020
 
 @author: clementlepadellec
 """
-
+'''
+Use the ``bokeh serve`` command to run the example by executing:
+    bokeh serve Interface.py
+at your command prompt. Then navigate to the URL
+    http://localhost:5006/Interface
+in your browser.
+'''
 
 ####################################################################
 #                    PACKAGES IMPORT                               #######################
@@ -24,6 +30,10 @@ from bokeh.transform import factor_cmap
 from bokeh.palettes import Spectral10
 from bokeh.models import HoverTool, Div,Panel,Tabs
 from bokeh.models.widgets import MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
+import Classe
+import Classe_Reg
+from Classe import Algo_Var_Cat
+from Classe_Reg import Algo_Var_Num
 #
 
 
@@ -60,6 +70,11 @@ multi_select_var = MultiSelect(value=[], options=[])
 #Fonction Update qui met à jour tous les widgets/données quand l'utilisateur change de valeurs :
 #-----------------------------------------------------------------------------------------------
 
+def load_data():
+    menu.value=''
+    multi_select_var.value=[]
+    update()
+    
 def update():
     df=pd.read_csv(str(file_input.value), sep=",")
     Columns = [TableColumn(field=Ci, title=Ci) for Ci in df.columns] # bokeh columns
@@ -104,11 +119,13 @@ def update():
 #-------------------------------------------------------------------------
 #Si une valeur d'un widget change alors on update tout : 
 #-------------------------------------------------------------------------   
-controls = [file_input,menu,multi_select_var]
+button = Button(label="Charger les données", button_type="success")
+
+controls = [menu,multi_select_var]
 for control in controls:
     control.on_change('value', lambda attr, old, new: update())
 
-
+file_input.on_change('value', lambda attr, old, new: load_data())
 #-------------------------------------------------------------------------
 #Organisation du 1er onglet : 
 #-------------------------------------------------------------------------
