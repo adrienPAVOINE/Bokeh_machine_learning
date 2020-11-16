@@ -31,9 +31,9 @@ from bokeh.palettes import Spectral10
 from bokeh.models import HoverTool, Div,Panel,Tabs
 from bokeh.models.widgets import MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
 import Classe
-import Classe_Reg
+import Classe_Reg_temp
 from Classe import Algo_Var_Cat
-from Classe_Reg import Algo_Var_Num
+from Classe_Reg_temp import Algo_Var_Num
 #
 
 
@@ -61,8 +61,10 @@ def test_var_cible(df,var_cible):
 #Initialisation du menu pour sélection de variables cible/explicatives : 
 #-------------------------------------------------------------------------
 
-
+#selectionner la var cible
 menu = Select(options=[],value='', title='Variable cible')
+
+#selectionner var expli
 multi_select_var = MultiSelect(value=[], options=[])
 
 
@@ -123,7 +125,6 @@ def update():
 #-------------------------------------------------------------------------
 #Si une valeur d'un widget change alors on update tout : 
 #-------------------------------------------------------------------------   
-button = Button(label="Charger les données", button_type="success")
 
 controls = [menu,multi_select_var]
 for control in controls:
