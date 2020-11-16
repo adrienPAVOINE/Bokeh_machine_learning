@@ -20,18 +20,25 @@ df = pd.read_csv("C:/Users/adrien/Downloads/AirQualityUCI.csv", sep=";" , decima
 
 
 
-dfqual = pd.read_csv("C:/Users/adrien/Downloads/cars2.csv", sep=";")
-dfqual.head(5)
+dfq = pd.read_csv("C:/Users/adrien/Downloads/house.csv", sep=";")
+
+dfq = dfq.iloc[:,[5,6,7,8,12,69]]
+for col in dfq.columns:
+    dfq[col] = dfq[col].astype('category')
+dfq['price'] = dfq['price'].astype('float64')
+dfq.head(20)
 
 
-test=Algo_Var_Num(dfqual)
+type(dfq.info())
+
+test=Algo_Var_Num(dfq)
 
 test.Anova_Desequilibre()
 
 test1=Algo_Var_Num(df)
-test1.Regression_line_multiple()
+#test1.Regression_line_multiple()
 
-#test.K_Proches_Voisins_Reg()
+#test1.K_Proches_Voisins_Reg()
 
-#test.Reseau_Neurone()
+#test1.Reseau_Neurone()
 

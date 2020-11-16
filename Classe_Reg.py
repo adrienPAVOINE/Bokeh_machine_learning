@@ -22,7 +22,8 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.datasets import make_regression
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
-
+from sklearn.model_selection import cross_val_score
+from statistics import mean
 class Algo_Var_Num():
  
     #-------------------------------------------------------------------------
@@ -83,11 +84,12 @@ class Algo_Var_Num():
         plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
         plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
         plt.title("Y_pred en vert, y_test en rouge")
-        fig=plt.show()
+        plt.show()
         #validation croisée
-        from sklearn.model_selection import cross_val_score
-        print(cross_val_score(lin_reg_mod, self.X, self.y, cv=5))
-        return fig
+        val_cro = cross_val_score(lin_reg_mod, self.X, self.y, cv=5)
+        print(val_cro)
+        print(mean(val_cro))
+        
 
         
     #-------------------------------------------------------------------------
@@ -97,7 +99,7 @@ class Algo_Var_Num():
     
         #instanciation - objet arbre de décision
         #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
-        knnRegressor = KNeighborsRegressor()
+        knnRegressor = KNeighborsRegressor(6)
         knnRegressor.fit(self.XTrain,self.yTrain)
 
 
@@ -109,12 +111,21 @@ class Algo_Var_Num():
         #prédiction en test
 
         yPred = knnRegressor.predict(self.XTest)
-
+        
+         # The mean squared error
+        print("Mean squared error")
+        print(mean_squared_error(self.yTest, yPred))
+        print("R2 score")
+        print(r2_score(self.yTest, yPred))
         
         plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "orange") #Prédictions
         plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
         plt.title("Y_pred en orange, y_test en rouge")
         plt.show()
+        #validation croisée
+        val_cro = cross_val_score(knnRegressor, self.X, self.y, cv=5)
+        print(val_cro)
+        print(mean(val_cro))
 
     #-------------------------------------------------------------------------
     #Création de la regressionn logistiques
@@ -124,40 +135,68 @@ class Algo_Var_Num():
         yPred = regr.predict(self.XTest)
         
         regr.score(self.XTest, self.yTest)
+        print(regr.score(self.XTest, self.yTest))
+        
+         # The mean squared error
+        print("Mean squared error")
+        print(mean_squared_error(self.yTest, yPred))
+        print("R2 score")
+        print(r2_score(self.yTest, yPred))        
+        
+        
         
         
         plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "blue") #Prédictions
         plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
         plt.title("Y_pred en bleue, y_test en rouge")
         plt.show()
+        #validation croisée
+        val_cro = cross_val_score(regr, self.X, self.y, cv=5)
+        print("moyenne validation croisée")
+        print(mean(val_cro))
         
     def Anova_Desequilibre(self):
         ystr = str(self.yTrain.name)
         var_qual = ''
         for col in self.XTrain.columns: 
             var_qual += str(col)
-            var_qual += '*'
+            var_qual += '+'
         var_qual = var_qual[:-1]
         var = str(ystr + "~" + var_qual)
-        
-        lm = ols(var, data = self.dfTrain).fit()
+        anova = ols(var, data = self.dfTrain)
+        lm = anova.fit()
         table= sm.stats.anova_lm(lm)
         print(table)
         aov = sm.stats.anova_lm(lm, typ=2)
         res = lm.resid 
         fig = sm.qqplot(res, line='s')
         plt.show()
-
-        pred = lm.predict(self.dfTest)
-    
         y_test = self.dfTest[str(ystr)]
+        x_test = self.dfTest
+ 
+        
+        x_test = x_test.drop([str(ystr)],axis=1)
+        pred = lm.predict(x_test)
+        print(pred)
+        
+        
+
         pred.iloc[np.argsort(y_test)]
-    
+         # The mean squared error
+        print("Mean squared error")
+        print(mean_squared_error(y_test, pred))
+        print("R2 score")
+        print(r2_score(y_test, pred))   
+
+
         plt.plot(range(len(y_test)), pred.iloc[np.argsort(y_test)], color = "green") #Prédictions
         plt.scatter(range(len(y_test)), np.sort(y_test), color = "red") #Données réelles
         plt.title("Y_pred en vert, y_test en rouge")
         plt.show()
-             
+        #validation croisée
+        #val_cro = cross_val_score(aov, self.X, self.y, cv=5)
+        #print(val_cro)
+        #print(mean(val_cro))
         
 
          
