@@ -72,51 +72,83 @@ multi_select_var = MultiSelect(value=[], options=[])
 #Fonction Update qui met à jour tous les widgets/données quand l'utilisateur change de valeurs :
 #-----------------------------------------------------------------------------------------------
 
+#si changement de jeux de données on reset les valeurs des widgets
 def load_data():
+    #pas de variable sélectionnée au debut
     menu.value=''
+    #pas de variables explicatives sélectionnées au début
     multi_select_var.value=[]
+    #on a changé les données on appelle donc la fonction d'update des widgets
     update()
     
+    
+#fonction qui est appelée dès qu'un widget est modifié par l'utilisateur
 def update():
+    #on recharge le jeu de données
     df=pd.read_csv(str(file_input.value), sep=",")
+    #on met en place une data_table (car impossible de print un df avec bokeh)
     Columns = [TableColumn(field=Ci, title=Ci) for Ci in df.columns] # bokeh columns
     data_table = DataTable(columns=Columns, source=ColumnDataSource(df[:10])) # bokeh table
+    #on affecte la data_table (prévisualisation des données) à l'élément du layout qui est attribué à la pré-visaulisation des données
     child_onglet1.children[4] =data_table
-    #menu=Select(options=list(df.columns),value=list(df.columns)[0], title='bo')
+    
+    #on créer une liste des potentielles vars explicatives
     lst_expl=list(df.columns)
+    
+    #on attribue au "menu" la liste des variables du df, toutes peuvent être choisies comme var cible
     menu.options=list(df.columns)
     
+    #si la valeur du widget menu != '', cela signifie que l'utilisateur à choisit une var cible
     if (menu.value != ''):
+        #on va donc tester le type de la variable
         var_type=test_var_cible(df,menu.value)
+        #on supprime la var cible de la liste des var explicatives
         del lst_expl[lst_expl.index(str(menu.value))]
+        
+        #si c'est une var textuelle alors les 3 algos possibles sont :
         if(var_type=='String'):
             your_alg1.text='Arbre de décision'
             your_alg2.text='Analyse_Discriminante'
             your_alg3.text='Regression_log'
+        # sinon :
         else:
             your_alg1.text='Regression_line_multiple'
             your_alg2.text='K_Proches_Voisins_Reg'
-            your_alg3.text='Reseau_Neurone'            
+            your_alg3.text='Reseau_Neurone'  
+    # si la valeur de menu=='' l'utilisateur n'a pas encore définit de var cible
     else:
         var_type='Pas de colonnes sélectionnées'
     
     
+    #si l'utilisateur à choisit une var cible et au moins une var explicative
     if ((menu.value != '')&(multi_select_var.value !=[])):
+        
+        #on créer un nouveau df qui contient les vars explicatives et la var cible en dernière colonne
         new_df= pd.concat([df[multi_select_var.value],df[str(menu.value)]],axis=1)
+        
+        #on créer une visualisation des données qui vont être l'input de l'algo
         Columns_new_df = [TableColumn(field=Ci, title=Ci) for Ci in new_df.columns] # bokeh columns
         data_table_new_df = DataTable(columns=Columns_new_df, source=ColumnDataSource(new_df[:10])) # bokeh table
+        #affectation de la prévisaulisation sur les 3 onglets des algos
         child_alg1.children[1]=data_table_new_df
         child_alg2.children[1]=data_table_new_df
         child_alg3.children[1]=data_table_new_df
+        
+        #si la var cible est textuelle alors on execute des fonctions qui vont lancer les algos appropriés
         if(var_type=='String'):
             decision_tree_maker(new_df)
+            #rajouter les autres algo de Classe.py en créant d'autres fonctions algo_maker
         else:
             reg_mult_maker(new_df) 
         
+    #update du widget qui permet une multi-selection de variables (vars explicatives)
     multi_select_var.options=lst_expl
+    
+    #on prépare des string qui seront affichées pour indiquer les vars choisies par l'utilisateur
     text_for_target=str("<center><h4 > Votre variable cible est : "+str(menu.value)+"("+str(var_type)+")"+"</h4></center>")
     text_for_explain=str("<center><h4 > Vos variables explicatives sont : "+str(multi_select_var.value)+"</h4></center>")
     
+    #mise à jour des indications aves les strings ci-dessus
     your_target.text=text_for_target
     your_explain.text=text_for_explain
     return menu,your_target,your_explain,
@@ -126,14 +158,20 @@ def update():
 #Si une valeur d'un widget change alors on update tout : 
 #-------------------------------------------------------------------------   
 
+#les controls correspondent aux widgets présent sur l'onglet 1
 controls = [menu,multi_select_var]
+
+#si l'utilisateur utilise un widget alors on appelle la fonction update()
 for control in controls:
     control.on_change('value', lambda attr, old, new: update())
 
+#si l'utilisateur change de données alors on exécute la fonction load_data()
 file_input.on_change('value', lambda attr, old, new: load_data())
+
 #-------------------------------------------------------------------------
 #Organisation du 1er onglet : 
 #-------------------------------------------------------------------------
+
 
 title = Div(text="<center><h1 >Interface d'analyse de données</h1></center>")
 sdl=column(Div(text="<br/>"))
@@ -148,7 +186,10 @@ your_explain=Div(text=text_for_explain)
 header=column(title,authors, width=1500)
 contents=row(file_input, width=800)
 
+#mise en place de l'onglet un, les éléments à l'intérieur sont les "childrens"
 child_onglet1 = layout([header],[sdl],[Previsualisation_data],[file_input],[],[Target_choice],[menu],[your_target],[Explain_choice],[multi_select_var],[your_explain])
+
+#création de l'onglet
 onglet1= Panel(child=child_onglet1,title="Welcome !")
 
 ####################################################################
@@ -157,9 +198,13 @@ onglet1= Panel(child=child_onglet1,title="Welcome !")
 
 #Arbre de décision (cas target QL)
 
+
+#fonction qui execute le decision_tree sur le df bien formaté comme il faut
 def decision_tree_maker(new_df):
     print('a compléter')
     
+
+#des exemples - à supprimer
 x = np.arange(start=1, stop=6)
 x_exp = np.exp(x)
 fig2= figure(title='Fonction exponentielle', x_axis_label='Ascisses', y_axis_label='Ordonnées')
@@ -169,14 +214,22 @@ fig2.circle(x, x_exp, legend_label="log x", line_width=2, line_color="green", co
 
 #regression linéaire multiple (cas target QT)
 
+#fonction qui execute la reg multiple sur le df bien formaté comme il faut
 def reg_mult_maker(new_df):
+    
+    #instanciation de l'objet
     obj=Algo_Var_Num(new_df)
+    #on récupère tout ce qu'on souhaite afficher dans l'onglet (appel de la méthode de la classe Classe_Reg)
     coeff,mse,r2s,cross_val,msg=obj.Regression_line_multiple()
+    
+    #Mise en place des résultats dans des divs
     coeff=Div(text=coeff)
     mse=Div(text=mse)
     r2s=Div(text=r2s)
     cross_val=Div(text=cross_val)
     msg=Div(text=msg)
+    
+    #affectation aux childrends du layout
     child_alg1.children[2]=msg
     child_alg1.children[3]=coeff
     child_alg1.children[4]=mse
@@ -184,14 +237,21 @@ def reg_mult_maker(new_df):
     child_alg1.children[6]=cross_val
     child_alg1.children[7]=fig2
     
+
+#ici on instancie car c'est modifier dans la fonction update (donc il faut pouvoir y avoir accès en global)
 text_for_alg1=""
 your_alg1=Div(text=text_for_alg1)
+
+#creation du layout correspondant
 child_alg1=layout([your_alg1],[],[],[],[],[],[],[])
+
+#creation de l'algo
 onglet2 = Panel(child=child_alg1, title="ALGO 1")
 ####################################################################
 #                    ONGLET 3 - ALGO N°2                           #######################
 ####################################################################
 
+#même principe
 x_log = np.log(x)
 fig1= figure(title='Fonction logarithme', x_axis_label='Ascisses', y_axis_label='Ordonnées')
 fig1.circle(x, x_log, legend_label="log x", line_width=2, line_color="green", color='green', size=5)
@@ -206,6 +266,7 @@ onglet3 = Panel(child=child_alg2, title="ALGO 2")
 #                    ONGLET 4 - ALGO N°3                           #######################
 ####################################################################
 
+#même principe
 x_log = np.log(x)
 fig1= figure(title='Fonction logarithme', x_axis_label='Ascisses', y_axis_label='Ordonnées')
 fig1.circle(x, x_log, legend_label="log x", line_width=2, line_color="green", color='green', size=5)
@@ -220,6 +281,7 @@ onglet4 = Panel(child=child_alg3, title="ALGO 3")
 #                    MISE EN PLACE DU PANEL                        #######################
 ####################################################################
 
+#on met en place l'interface globale avec nos 4 onglets
 panel = Tabs(tabs=[onglet1,onglet2,onglet3,onglet4])
 doc=curdoc()
 curdoc().add_root(panel) 
