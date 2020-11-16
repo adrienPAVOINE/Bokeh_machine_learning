@@ -57,47 +57,67 @@ class Algo_Var_Num():
     #Création de de la régression linéaire multiple et de la prédiction
     #-------------------------------------------------------------------------
     def Regression_line_multiple(self):
-
-        #instanciation - objet arbre de décision
-        #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
-        lin_reg_mod = LinearRegression()
-        lin_reg_mod.fit(self.XTrain,self.yTrain)
+        
+        test=True
+        df=self.df
+        coeff=''
+        mse=''
+        r2s=''
+        cross_val=''
+        msg=''
+        for i in df.columns:
+            if (np.issubdtype(df[i].dtype, np.number)!=True):
+                test=False
+            print(test)
+        if (test==True):
+            
+            #instanciation - objet arbre de décision
+            #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
+            lin_reg_mod = LinearRegression()
+            lin_reg_mod.fit(self.XTrain,self.yTrain)
+        
+            # The coefficients
+            coeff=str('Coefficients: \n'+str(lin_reg_mod.coef_))
+            print(coeff)
+            #-------------------------------------------------------------------------
+            #Prédiction : 
+            #-------------------------------------------------------------------------
     
-        # The coefficients
-        print('Coefficients: \n', lin_reg_mod.coef_)
-
-        #-------------------------------------------------------------------------
-        #Prédiction : 
-        #-------------------------------------------------------------------------
-
-        #prédiction en test
-
-        yPred = lin_reg_mod.predict(self.XTest)
-        
-         # The mean squared error
-        print("Mean squared error")
-        print(mean_squared_error(self.yTest, yPred))
-        print("R2 score")
-        print(r2_score(self.yTest, yPred))
-        
-        plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
-        plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
-        plt.title("Y_pred en vert, y_test en rouge")
-        fig=plt.show()
-        #validation croisée
-        from sklearn.model_selection import cross_val_score
-        print(cross_val_score(lin_reg_mod, self.X, self.y, cv=5))
-        return fig
-
+            #prédiction en test
+    
+            yPred = lin_reg_mod.predict(self.XTest)
+            
+             # The mean squared error
+            mse=str("Mean squared error: \n"+str(mean_squared_error(self.yTest, yPred)))
+            print(mse)
+            #print(mean_squared_error(self.yTest, yPred))
+            r2s=str("R2 score : \n"+str(r2_score(self.yTest, yPred)))
+            print(r2s)
+            #print(r2_score(self.yTest, yPred))
+            
+            plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
+            plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
+            plt.title("Y_pred en vert, y_test en rouge")
+            #plt.show()
+            #validation croisée
+            from sklearn.model_selection import cross_val_score
+            cross_val=str("Cross Validation : \n"+str(cross_val_score(lin_reg_mod, self.X, self.y, cv=5)))
+            print(cross_val)
+            #print(cross_val_score(lin_reg_mod, self.X, self.y, cv=5))
+            msg="Paramétrage correct !"
+            return coeff,mse,r2s,cross_val,msg
+        else:
+            msg="Attention une de vos variables explicatives n'est pas numérique, l'algorithme ne peut pas fonctionner !"
+            return coeff,mse,r2s,cross_val,msg
         
     #-------------------------------------------------------------------------
     #Création de l'analyse discrinimante linéaire
     #-------------------------------------------------------------------------  
-    def K_Proches_Voisins_Reg(self):
+    def K_Proches_Voisins_Reg(self,k):
     
         #instanciation - objet arbre de décision
         #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
-        knnRegressor = KNeighborsRegressor()
+        knnRegressor = KNeighborsRegressor(n_neighbors=k)
         knnRegressor.fit(self.XTrain,self.yTrain)
 
 

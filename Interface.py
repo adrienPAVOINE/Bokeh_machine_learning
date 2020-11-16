@@ -171,11 +171,22 @@ fig2.circle(x, x_exp, legend_label="log x", line_width=2, line_color="green", co
 
 def reg_mult_maker(new_df):
     obj=Algo_Var_Num(new_df)
-    child_alg1.children[2]=obj.Regression_line_multiple()
+    coeff,mse,r2s,cross_val,msg=obj.Regression_line_multiple()
+    coeff=Div(text=coeff)
+    mse=Div(text=mse)
+    r2s=Div(text=r2s)
+    cross_val=Div(text=cross_val)
+    msg=Div(text=msg)
+    child_alg1.children[2]=msg
+    child_alg1.children[3]=coeff
+    child_alg1.children[4]=mse
+    child_alg1.children[5]=r2s
+    child_alg1.children[6]=cross_val
+    child_alg1.children[7]=fig2
     
 text_for_alg1=""
 your_alg1=Div(text=text_for_alg1)
-child_alg1=layout([your_alg1],[],[fig2])
+child_alg1=layout([your_alg1],[],[],[],[],[],[],[])
 onglet2 = Panel(child=child_alg1, title="ALGO 1")
 ####################################################################
 #                    ONGLET 3 - ALGO N°2                           #######################
