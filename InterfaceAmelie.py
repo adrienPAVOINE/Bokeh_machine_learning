@@ -134,20 +134,20 @@ onglet1= Panel(child=child_onglet1,title="Welcome !")
     
 from Classe import Algo_Var_Cat
 #Données pour reg test 2
-df=pd.read_csv("diabete.csv",sep=",")
+df4=pd.read_excel("diabete_reg_logistique.xlsx")
 #Vérif si la var cible a pour modalité O et 1
-if ((df['diabete'].unique()==[0,1])[0] & (df['diabete'].unique()==[0,1])[1]) :
-    mod1=df['diabete'].unique()[0]
-    mod2=df['diabete'].unique()[1]
-    for i in range(0,len(df['diabete'])):
-        if (df['diabete'][i]==mod1) : 
-            df['diabete'][i]=0
-        
-        if (df['diabete'][i]==mod2) : 
-            df['diabete'][i]=1
-    df['diabete'] = df[menu.value].astype('int')  
+#if ((df4['diabete'].unique()==[0,1])[0] & (df4['diabete'].unique()==[0,1])[1]) :
+   # mod1=df4['diabete'].unique()[0]
+    #mod2=df4['diabete'].unique()[1]
+for i in range(0,len(df4['diabete'])):
+    if (df4['diabete'][i]=='positive') : 
+        df4['diabete'][i]=0
+    
+    if (df4['diabete'][i]=="negative") : 
+        df4['diabete'][i]=1
+df4['diabete'] = df4['diabete'].astype('int')  
 
-test3=Algo_Var_Cat(df)
+test3=Algo_Var_Cat(df4)
 #multi = T ou F
 multi_classe=False
 test3.Regression_log(multi=multi_classe)
