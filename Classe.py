@@ -13,9 +13,25 @@ from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from sklearn import preprocessing
 from sklearn import model_selection
+import statsmodels as sm
+from statsmodels.tools import add_constant
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 import pandas
+
+from bokeh.io import curdoc, show
+import io
+from bokeh import plotting
+from bokeh.layouts import row, column, gridplot, layout
+from bokeh.models import ColumnDataSource
+from bokeh.models.widgets import Slider, TextInput
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, FileInput
+from bokeh.transform import factor_cmap
+from bokeh.palettes import Spectral10
+from bokeh.models import HoverTool, Div,Panel,Tabs
+from bokeh.models.widgets import MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
+
 
 class Algo_Var_Cat():
  
@@ -43,11 +59,8 @@ class Algo_Var_Cat():
         #print(self.df)
         
         #distribution des classes
-        print("Distribution des classes :")
-        print(self.yTrain.value_counts(normalize=True))
-        print(self.yTest.value_counts(normalize=True))
-        print(self.yTrain,self.XTrain)
-    
+        self.distrib=Div(text="Distribution des classes :"+str(self.yTrain.value_counts(normalize=True))+"</br>"+str(self.yTest.value_counts(normalize=True)))
+            
     
     #-------------------------------------------------------------------------
     #Création de l'arbre de décision et de la prédiction
@@ -91,7 +104,7 @@ class Algo_Var_Cat():
         
         #distribution des classes prédictes
         #Intéressant d'afficher cette information
-        print(numpy.unique(yPred,return_counts=True))
+        print(np.unique(yPred,return_counts=True))
         
         
         #matrice de confusion
@@ -159,7 +172,7 @@ class Algo_Var_Cat():
         #transformer en matrice Numpy
         mcSmNumpy = mc.values
         #taux de reconnaissance
-        accSm = numpy.sum(numpy.diagonal(mcSmNumpy))/numpy.sum(mcSmNumpy)
+        accSm = np.sum(np.diagonal(mcSmNumpy))/np.sum(mcSmNumpy)
         print("Taux de reconnaissance : %.4f" % (accSm))
                 
         #calcul du taux d'erreur
@@ -189,7 +202,8 @@ class Algo_Var_Cat():
         #instanciation
         stds = preprocessing.StandardScaler()
         #transformation centrer et reduire
-        ZTrain = stds.fit_transform(self.XTrain)
+        ZTrain = sm.tools.add_constant(self.XTrain)
+        ZTrainBis = stds.fit_transform(ZTrain)
         
         if (multi==True) :
             #instanciation
@@ -199,16 +213,16 @@ class Algo_Var_Cat():
             lrSkStd = LogisticRegression(penalty='none')
         
         #lancement des calculs -- pas nécessaire de rajouter la constante
-        lrSkStd.fit(ZTrain,self.yTrain)
+        lrSkStd.fit(ZTrainBis,self.yTrain)
         
         #correction des coefficients - dé-standardisation
         #par les écarts-type utilisés lors de la standardisation des variables
         coefUnstd = lrSkStd.coef_[0] / stds.scale_
-        #affichage des coefficients corrigés
-        print(pandas.DataFrame({"var":self.XTrain.columns,"coef":coefUnstd}))
-        #pour la constante, l'opération est plus complexe
-        interceptUnStd = lrSkStd.intercept_ + numpy.sum(lrSkStd.coef_[0]*(-stds.mean_/stds.scale_))
-        print("Constante(s) :",interceptUnStd)
+        temp=pandas.DataFrame({"var":ZTrain.columns,"coef":coefUnstd})
+        columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+        self.coef=DataTable(source=ColumnDataSource(temp),columns=columns)
+        interceptUnStd = lrSkStd.intercept_ + np.sum(lrSkStd.coef_[0]*(-stds.mean_/stds.scale_))
+        self.const=Div(text= "Intercepts :"+str(interceptUnStd))
         
         if (multi==False):
             #Le log-vraisemblance
@@ -217,51 +231,54 @@ class Algo_Var_Cat():
             #récupération de la colonne n°1
             proba1 = proba01[:,1]
             #log-vraisemblance
-            log_likelihood = numpy.sum(self.yTrain*numpy.log(proba1)+(1.0-self.yTrain)*numpy.log(1.0-proba1))
-            print("La log-vraisemblance vaut :",log_likelihood)
+            log_likelihood = np.sum(self.yTrain*np.log(proba1)+(1.0-self.yTrain)*np.log(1.0-proba1))
+            self.log_vraisemblance=Div(text="La log-vraisemblance vaut :"+str(log_likelihood))
             
         
         #-------------------------------------------------------------------------
         #Prédiction : 
         #-------------------------------------------------------------------------
+        #ajout d'une constante :
+        ZTest = add_constant(self.XTest)
         #transformation de l'échantillon test (centrer-réduire)
-        ZTest = stds.transform(self.XTest)
-        #appliquer la prédiction
-        predSk = lrSkStd.predict(ZTest)
+        ZTest_Bis = stds.transform(ZTest)
+        
+        #calcul de la prédiction sur l'échantillon test
+        predProbaSk = lrSkStd.predict_proba(ZTest_Bis)
+        
+        #convertir en prédiction brute
+        predSk = np.where(predProbaSk[:,1] > 0.5, 1, 0)
         #matrice de confusion
         mcSm=pandas.crosstab(self.yTest,predSk)
-        print("Matrice de confusion :",mcSm)
+        self.matrice_confusion=Div(text="</br>Matrice de confusion : </br>"+str(np.array(mcSm)))
         #transformer en matrice Numpy
         mcSmNumpy = mcSm.values
         #taux de reconnaissance
-        accSm = numpy.sum(numpy.diagonal(mcSmNumpy))/numpy.sum(mcSmNumpy)
-        print("Taux de reconnaissance : %.4f" % (accSm))
+        accSm = np.sum(np.diagonal(mcSmNumpy))/np.sum(mcSmNumpy)
+        self.Tx_reconnaissance=Div(text="Taux de reconnaissance : " + str(accSm))
         #taux d'erreur
         errSm = 1.0 - accSm
-        print("Taux d'erreur' : %.4f" % (errSm))
+        self.Tx_erreur=Div(text="Taux d'erreur : "+str(errSm))
         #rapport sur la qualité de prédiction
-        print("Rapport sur la qualité de prédiction : ")
-        print(metrics.classification_report(self.yTest,predSk))
+        self.rapport=Div(text="Rapport sur la qualité de prédiction : " + str(metrics.classification_report(self.yTest,predSk)))
         
         # Construire la courbe ROC et calculer la valeur de l'AUC sur l'échantillon test
         if (multi==False):
+            
             #colonnes pour les courbes ROC
-            fprSm, tprSm, _ = metrics.roc_curve(self.yTest,predSk,pos_label=1)
+            fprSm, tprSm, _ = metrics.roc_curve(self.yTest,predProbaSk[:,1],pos_label=1)
             
             #graphique
-            #construire la diagonale
-            plt.plot(numpy.arange(0,1.1,0.1),numpy.arange(0,1.1,0.1),'b')
-            #rajouter notre diagramme
-            plt.plot(fprSm,tprSm,"g")
-            #titre
-            plt.title("Courbe ROC")
-            #faire apparaître
-            plt.show()
+             #xs:[val X courbe 1,val X courbe 2]/ ys:[val y courbe 1,val y courbe 2]
+            self.fig2= figure(title="Courbe ROC")
+            self.fig2.multi_line(xs=[fprSm,np.arange(0,1.1,0.1)],ys=[tprSm,np.arange(0,1.1,0.1)], color=['green','blue'])
             
             #valeur de l'AUC
             aucSm = metrics.roc_auc_score(self.yTest,predSk)
-            print("AUC : %.4f" % (aucSm))
-        
+            self.aucSm2=Div(text="<h4 > AUC : " +str(round(aucSm,4))+"</h4 >")
+            
+            
+            
         #-------------------------------------------------------------------------
         #Validation croisée : 
         #-------------------------------------------------------------------------
@@ -269,8 +286,6 @@ class Algo_Var_Cat():
         # paramètre par défaut : nb_cross_val=10
         succes = model_selection.cross_val_score(lrSkStd,self.X,self.y,cv=nb_cross_val,scoring='accuracy')
         #détail des itérations
-        print("Succès de la validation croisée :", succes)
+        self.int_succes=Div(text="Succès de la validation croisée :"+ str(succes))
         #moyenne des taux de succès = estimation du taux de succès en CV
-        print("Moyenne des succès : %.4f " % succes.mean()) 
-
-         
+        self.moy_succes=Div(text="Moyenne des succès :" + str(round(succes.mean(),4))) 
