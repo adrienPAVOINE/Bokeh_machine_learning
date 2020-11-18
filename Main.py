@@ -54,11 +54,11 @@ test3=Algo_Var_Cat(df4)
 test3.Regression_log()
 
 
-
+import Classe_Reg
 from Classe_Reg import Algo_Var_Num
 
 
-df = pandas.read_csv("C:/Users/adrien/Downloads/AirQualityUCI.csv", sep=";" , decimal =",")
+df = pandas.read_csv("AirQualityUCI.csv", sep="," , decimal =".")
 
 df.info()
 

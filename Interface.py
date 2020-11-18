@@ -31,9 +31,9 @@ from bokeh.palettes import Spectral10
 from bokeh.models import HoverTool, Div,Panel,Tabs
 from bokeh.models.widgets import MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
 import Classe
-import Classe_Reg_temp
+import Classe_Reg
 from Classe import Algo_Var_Cat
-from Classe_Reg_temp import Algo_Var_Num
+from Classe_Reg import Algo_Var_Num
 #
 
 
@@ -139,7 +139,8 @@ def update():
             decision_tree_maker(new_df)
             #rajouter les autres algo de Classe.py en créant d'autres fonctions algo_maker
         else:
-            reg_mult_maker(new_df) 
+            nb_cv=Slider_vc.value
+            reg_mult_maker(new_df,nb_cv) 
         
     #update du widget qui permet une multi-selection de variables (vars explicatives)
     multi_select_var.options=lst_expl
@@ -213,29 +214,37 @@ fig2.circle(x, x_exp, legend_label="log x", line_width=2, line_color="green", co
 
 
 #regression linéaire multiple (cas target QT)
-
+Slider_vc=Slider(start=0, end=15, value=5, step=1, title="Cross Validation")
 #fonction qui execute la reg multiple sur le df bien formaté comme il faut
-def reg_mult_maker(new_df):
+
+def update_vc(new_df):
+    #si le nb de vc a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
+    nb_cv=Slider_vc.value
+    obj=Algo_Var_Num(new_df)
+    obj.Regression_line_multiple(nb_cv)
+    child_alg1.children[9]=obj.val_cro
+    child_alg1.children[10]=obj.mean_val_cro
     
+def reg_mult_maker(new_df,nb_cv):
+    
+
     #instanciation de l'objet
     obj=Algo_Var_Num(new_df)
     #on récupère tout ce qu'on souhaite afficher dans l'onglet (appel de la méthode de la classe Classe_Reg)
-    coeff,mse,r2s,cross_val,msg=obj.Regression_line_multiple()
-    
-    #Mise en place des résultats dans des divs
-    coeff=Div(text=coeff)
-    mse=Div(text=mse)
-    r2s=Div(text=r2s)
-    cross_val=Div(text=cross_val)
-    msg=Div(text=msg)
+    #coeff,mse,r2s,cross_val,msg=
+    obj.Regression_line_multiple(nb_cv)
     
     #affectation aux childrends du layout
-    child_alg1.children[2]=msg
-    child_alg1.children[3]=coeff
-    child_alg1.children[4]=mse
-    child_alg1.children[5]=r2s
-    child_alg1.children[6]=cross_val
-    child_alg1.children[7]=fig2
+    child_alg1.children[2]=obj.title_for_coeff
+    child_alg1.children[3]=obj.coef
+    child_alg1.children[4]=obj.mse
+    child_alg1.children[5]=obj.r2
+    child_alg1.children[6]=obj.fig
+    child_alg1.children[7]=obj.title_for_vc
+    child_alg1.children[8]=Slider_vc
+    child_alg1.children[9]=obj.val_cro
+    child_alg1.children[10]=obj.mean_val_cro
+    Slider_vc.on_change('value', lambda attr, old, new: update_vc(new_df))
     
 
 #ici on instancie car c'est modifier dans la fonction update (donc il faut pouvoir y avoir accès en global)
@@ -243,7 +252,7 @@ text_for_alg1=""
 your_alg1=Div(text=text_for_alg1)
 
 #creation du layout correspondant
-child_alg1=layout([your_alg1],[],[],[],[],[],[],[])
+child_alg1=layout([your_alg1],[],[],[],[],[],[],[],[],[],[])
 
 #creation de l'algo
 onglet2 = Panel(child=child_alg1, title="ALGO 1")
