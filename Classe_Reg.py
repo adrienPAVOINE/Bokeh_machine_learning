@@ -17,7 +17,7 @@ import numpy as np
 import pandas
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score,make_scorer
 from sklearn.neural_network import MLPRegressor
 from sklearn.datasets import make_regression
 import statsmodels.api as sm
@@ -112,14 +112,14 @@ class Algo_Var_Num():
         
         self.fig= figure(title="Y_pred en vert VS y_test en rouge")
         self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="green", size=8)
-        self.fig.line(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
+        self.fig.circle(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
         
         #plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
         #plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
         #plt.title("Y_pred en vert, y_test en rouge")
         #plt.show()
         #validation croisée
-        val_cro = cross_val_score(lin_reg_mod, self.X, self.y, cv=nb_cv)
+        val_cro = cross_val_score(lin_reg_mod, self.X, self.y, cv=nb_cv,scoring=make_scorer(mean_squared_error))
         lst_cv=[]
         for i in range(1,nb_cv+1):
             lst_cv.append((str("essai : ")+str(i)))

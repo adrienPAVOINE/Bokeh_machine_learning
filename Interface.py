@@ -68,6 +68,8 @@ menu = Select(options=[],value='', title='Variable cible')
 #selectionner var expli
 multi_select_var = MultiSelect(value=[], options=[])
 
+#bouton pour lancer l'analyse
+bt = Button(label="Lancer l'analyse")
 
 #-----------------------------------------------------------------------------------------------
 #Fonction Update qui met à jour tous les widgets/données quand l'utilisateur change de valeurs :
@@ -80,25 +82,23 @@ def load_data():
     #pas de variables explicatives sélectionnées au début
     multi_select_var.value=[]
     #on a changé les données on appelle donc la fonction d'update des widgets
-    update()
-    
-    
-#fonction qui est appelée dès qu'un widget est modifié par l'utilisateur
-def update():
-    #on recharge le jeu de données
     df=pd.read_csv(str(file_input.value), sep=",")
-    #on met en place une data_table (car impossible de print un df avec bokeh)
     Columns = [TableColumn(field=Ci, title=Ci) for Ci in df.columns] # bokeh columns
     data_table = DataTable(columns=Columns, source=ColumnDataSource(df[:10])) # bokeh table
     #on affecte la data_table (prévisualisation des données) à l'élément du layout qui est attribué à la pré-visaulisation des données
     child_onglet1.children[4] =data_table
-    
+    update_controls()
+
+def update_controls():
+    #on recharge le jeu de données
+    df=pd.read_csv(str(file_input.value), sep=",")
+    #on met en place une data_table (car impossible de print un df avec bokeh)
+
     #on créer une liste des potentielles vars explicatives
     lst_expl=list(df.columns)
     
     #on attribue au "menu" la liste des variables du df, toutes peuvent être choisies comme var cible
     menu.options=list(df.columns)
-    
     #si la valeur du widget menu != '', cela signifie que l'utilisateur à choisit une var cible
     if (menu.value != ''):
         #on va donc tester le type de la variable
@@ -119,34 +119,6 @@ def update():
     # si la valeur de menu=='' l'utilisateur n'a pas encore définit de var cible
     else:
         var_type='Pas de colonnes sélectionnées'
-    
-    
-    #si l'utilisateur à choisit une var cible et au moins une var explicative
-    if ((menu.value != '')&(multi_select_var.value !=[])):
-        
-        #on créer un nouveau df qui contient les vars explicatives et la var cible en dernière colonne
-        new_df= pd.concat([df[multi_select_var.value],df[str(menu.value)]],axis=1)
-        
-        #on créer une visualisation des données qui vont être l'input de l'algo
-        Columns_new_df = [TableColumn(field=Ci, title=Ci) for Ci in new_df.columns] # bokeh columns
-        data_table_new_df = DataTable(columns=Columns_new_df, source=ColumnDataSource(new_df[:10])) # bokeh table
-        #affectation de la prévisaulisation sur les 3 onglets des algos
-        child_alg1.children[1]=data_table_new_df
-        child_alg2.children[1]=data_table_new_df
-        child_alg3.children[1]=data_table_new_df
-        
-        #si la var cible est textuelle alors on execute des fonctions qui vont lancer les algos appropriés
-        if(var_type=='String'):
-            decision_tree_maker(new_df)
-            #rajouter les autres algo de Classe.py en créant d'autres fonctions algo_maker
-        else:
-            nb_cv=Slider_vc.value
-            nb_kv = Slider_kv.value
-            max_iter = Slider_maxiter.value
-            reg_mult_maker(new_df,nb_cv) 
-            knn_maker(new_df,nb_kv,nb_cv)
-            r_neur_maker(new_df,max_iter,nb_cv)
-        
     #update du widget qui permet une multi-selection de variables (vars explicatives)
     multi_select_var.options=lst_expl
     
@@ -156,8 +128,40 @@ def update():
     
     #mise à jour des indications aves les strings ci-dessus
     your_target.text=text_for_target
-    your_explain.text=text_for_explain
-    return menu,your_target,your_explain,
+    your_explain.text=text_for_explain    
+    
+#fonction qui est appelée dès qu'un widget est modifié par l'utilisateur
+def update_algos():
+    #on recharge le jeu de données
+    df=pd.read_csv(str(file_input.value), sep=",")
+    if menu.value != '':
+        var_type=test_var_cible(df,menu.value)
+        #si l'utilisateur à choisit une var cible et au moins une var explicative
+        if ((menu.value != '')&(multi_select_var.value !=[])):
+            
+            #on créer un nouveau df qui contient les vars explicatives et la var cible en dernière colonne
+            new_df= pd.concat([df[multi_select_var.value],df[str(menu.value)]],axis=1)
+            
+            #on créer une visualisation des données qui vont être l'input de l'algo
+            Columns_new_df = [TableColumn(field=Ci, title=Ci) for Ci in new_df.columns] # bokeh columns
+            data_table_new_df = DataTable(columns=Columns_new_df, source=ColumnDataSource(new_df[:10])) # bokeh table
+            #affectation de la prévisaulisation sur les 3 onglets des algos
+            child_alg1.children[1]=data_table_new_df
+            child_alg2.children[1]=data_table_new_df
+            child_alg3.children[1]=data_table_new_df
+            
+            #si la var cible est textuelle alors on execute des fonctions qui vont lancer les algos appropriés
+            if(var_type=='String'):
+                decision_tree_maker(new_df)
+                #rajouter les autres algo de Classe.py en créant d'autres fonctions algo_maker
+            else:
+                nb_cv=Slider_vc.value
+                nb_kv = Slider_kv.value
+                max_iter = Slider_maxiter.value
+                reg_mult_maker(new_df,nb_cv) 
+                knn_maker(new_df,nb_kv,nb_cv)
+                r_neur_maker(new_df,max_iter,nb_cv)
+
 
 
 #-------------------------------------------------------------------------
@@ -169,11 +173,11 @@ controls = [menu,multi_select_var]
 
 #si l'utilisateur utilise un widget alors on appelle la fonction update()
 for control in controls:
-    control.on_change('value', lambda attr, old, new: update())
+    control.on_change('value', lambda attr, old, new: update_controls())
 
 #si l'utilisateur change de données alors on exécute la fonction load_data()
 file_input.on_change('value', lambda attr, old, new: load_data())
-
+bt.on_click(update_algos)
 #-------------------------------------------------------------------------
 #Organisation du 1er onglet : 
 #-------------------------------------------------------------------------
@@ -193,7 +197,7 @@ header=column(title,authors, width=1500)
 contents=row(file_input, width=800)
 
 #mise en place de l'onglet un, les éléments à l'intérieur sont les "childrens"
-child_onglet1 = layout([header],[sdl],[Previsualisation_data],[file_input],[],[Target_choice],[menu],[your_target],[Explain_choice],[multi_select_var],[your_explain])
+child_onglet1 = layout([header],[sdl],[Previsualisation_data],[file_input],[],[Target_choice],[menu],[your_target],[Explain_choice],[multi_select_var],[your_explain],[bt])
 
 #création de l'onglet
 onglet1= Panel(child=child_onglet1,title="Welcome !")
@@ -270,19 +274,8 @@ onglet2 = Panel(child=child_alg1, title="ALGO 1")
 #K plus proche voisin (cas target QT)
 #slider de selection du nombre de voisin
 Slider_kv=Slider(start=1, end=15, value=5, step=1, title="Nombre de K plus proches voisins")
-#slider de selection du nombre de validation croisée
-Slider_vc=Slider(start=0, end=15, value=5, step=1, title="Cross Validation")
 
 
-
-
-def update_vc(new_df):
-    #si le nb de vc a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
-    nb_cv=Slider_vc.value
-    obj=Algo_Var_Num(new_df)
-    obj.K_Proches_Voisins_Reg(nb_cv)
-    child_alg2.children[8]=obj.val_cro
-    child_alg2.children[9]=obj.mean_val_cro
 
 def update_kv(new_df):
     #si le nb de k plus proches voisins a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
@@ -336,18 +329,8 @@ onglet3 = Panel(child=child_alg2, title="ALGO 2")
 #slider de selection du nombre de voisin
 Slider_maxiter=Slider(start=400, end=600, value=500, step=50, title="Maximum d'iteration")
 
-Slider_vc=Slider(start=0, end=15, value=5, step=1, title="Cross Validation")
+
 #fonction qui execute la reg multiple sur le df bien formaté comme il faut
-
-
-
-def update_vc(new_df):
-    #si le nb de vc a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
-    nb_cv=Slider_vc.value
-    obj=Algo_Var_Num(new_df)
-    obj.Reseau_Neurone(nb_cv)
-    child_alg3.children[7]=obj.val_cro
-    child_alg3.children[8]=obj.mean_val_cro
     
     
 def update_maxiter(new_df):
