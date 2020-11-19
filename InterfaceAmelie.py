@@ -17,7 +17,7 @@ import io
 from bokeh.layouts import row, column, gridplot, layout
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import Slider, TextInput
-from bokeh.plotting import figure
+from bokeh.plotting import figure, output_file,show
 from bokeh.models import ColumnDataSource, FileInput
 from bokeh.transform import factor_cmap
 from bokeh.palettes import Spectral10
@@ -140,14 +140,18 @@ df2=df2.iloc[:,0:65]
 test1=Algo_Var_Cat(df2,var_cible='chiffre')
 test1.Arbre_decision()
 
-text_for_alg1="Arbre de décision"
+
+text_for_alg1="<h3>Arbre de décision</h3>"
 your_alg1=Div(text=text_for_alg1)
 child_alg1=layout([your_alg1],[test1.distrib1],[test1.distrib2],[test1.distrib3],
-                  [test1.distrib4],[test1.distrib5],[test1.regles],[test1.coef],
-                  [test1.distribpred1],
+                  [test1.distrib4],[test1.distrib5],[test1.distribpred1],
+                  [test1.distribpred2],[test1.reglesT],[test1.regles],[test1.treeT],[test1.tree],[test1.coef1],[test1.coef],
                   [test1.matrice_confusion],[test1.cube],[test1.Tx_reconnaissance],
-                  [test1.rapclass],[test1.Tx_erreur],[test1.rapport],[test1.int_succes],
+                  [test1.rapclass],[test1.Tx_erreur],[test1.rap1],[test1.rapport],[test1.int_succes],
                   [test1.moy_succes])
+
+
+
 onglet2 = Panel(child=child_alg1, title="ALGO 1")
 
 
@@ -155,20 +159,27 @@ onglet2 = Panel(child=child_alg1, title="ALGO 1")
 #                    ONGLET 3 - ALGO N°2                           #######################
 ####################################################################
 
-'''
-test2=Algo_Var_Cat(df)
+
+df2=pd.read_csv("seeds.csv", sep=",")
+
+test2=Algo_Var_Cat(df2,'seed')
 test2.Analyse_Discriminante()
 
-text_for_alg2="Analyse Discriminante"
+output_file('image.html')
+
+p = figure(x_range=(0,1), y_range=(0,1))
+p.image_url(url=['tree.png'], x=0, y=1, w=0.8, h=0.6)
+## could also leave out keywords
+# p.image_url(['tree.png'], 0, 1, 0.8, h=0.6)  
+show(p)
+        
+
+text_for_alg2="<h3>Analyse Discriminante</h3>"
 your_alg2=Div(text=text_for_alg2)
 child_alg2=layout([your_alg2],[test2.distrib1],[test2.distrib2],[test2.distrib3],
-                      [test2.distrib4],[test2.distrib5],[test2.coef],[test2.matrice_confusion],
-                  [test2.matrice_confusion],[test3.cube],[test2.Tx_reconnaissance],[test2.Tx_erreur],[test2.rapport],
+                      [test2.distrib4],[test2.distrib5],[test2.coefT],[test2.coef],
+                  [test2.matrice_confusion],[test2.cube],[test2.Tx_reconnaissance],[test2.Tx_erreur],[test2.rapport],
                   [test2.int_succes],[test2.moy_succes])
-'''
-text_for_alg2="Analyse Discriminante"
-your_alg2=Div(text=text_for_alg2)
-child_alg2=layout([your_alg2])
 onglet3 = Panel(child=child_alg2, title="ALGO 2")
 
 
@@ -206,12 +217,12 @@ else :
 test3=Algo_Var_Cat(df5,var_cible='classe') 
 test3.Regression_log(multi=multi_classe)
 
-text_for_alg3="Regression logistique :"
+text_for_alg3="<h3>Regression logistique :</h3>"
 your_alg3=Div(text=text_for_alg3)
 #ordre d'affichage des variables de classe de l'Algo
 if multi_classe==False :
     child_alg3=layout([your_alg3],[test3.distrib1],[test3.distrib2],[test3.distrib3],
-                      [test3.distrib4],[test3.distrib5],[test3.coef],[test3.const],
+                      [test3.distrib4],[test3.distrib5],[test3.coefT],[test3.coef],[test3.const],
                       [test3.log_vraisemblance],
                       [test3.matrice_confusion],[test3.cube],[test3.Tx_reconnaissance],
                       [test3.Tx_erreur],
@@ -219,7 +230,7 @@ if multi_classe==False :
                       [test3.moy_succes])
 else :
     child_alg3=layout([your_alg3],[test3.distrib1],[test3.distrib2],[test3.distrib3],
-                      [test3.distrib4],[test3.distrib5],[test3.coef],[test3.const],
+                      [test3.distrib4],[test3.distrib5],[test3.coefT],[test3.coef],[test3.const],
                       [test3.matrice_confusion],[test3.cube],[test3.Tx_reconnaissance],
                       [test3.Tx_erreur],[test3.rapport],[test3.int_succes],[test3.moy_succes])
 onglet4 = Panel(child=child_alg3, title="ALGO 3")
