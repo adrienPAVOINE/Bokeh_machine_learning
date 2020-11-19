@@ -140,66 +140,103 @@ class Algo_Var_Num():
     #-------------------------------------------------------------------------
     #Création de l'analyse discrinimante linéaire
     #-------------------------------------------------------------------------  
-    def K_Proches_Voisins_Reg(self):
+    def K_Proches_Voisins_Reg(self,kv = 5, nb_cv=5):
     
-        #instanciation - objet arbre de décision
-        #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
-        knnRegressor = KNeighborsRegressor(6)
+
+        knnRegressor = KNeighborsRegressor(kv)
         knnRegressor.fit(self.XTrain,self.yTrain)
-
-
- 
         #-------------------------------------------------------------------------
         #Prédiction : 
         #-------------------------------------------------------------------------
 
+
+
+
         #prédiction en test
 
         yPred = knnRegressor.predict(self.XTest)
+      
         
          # The mean squared error
         print("Mean squared error")
         print(mean_squared_error(self.yTest, yPred))
+        self.mse=Div(text= "Mean squared error :"+str(mean_squared_error(self.yTest, yPred)))
         print("R2 score")
         print(r2_score(self.yTest, yPred))
+        self.r2=Div(text=" R2 score : "+str(r2_score(self.yTest, yPred)))
         
-        plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "orange") #Prédictions
-        plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
-        plt.title("Y_pred en orange, y_test en rouge")
-        plt.show()
+        self.fig= figure(title="Y_pred en vert VS y_test en rouge")
+        self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="green", size=8)
+        self.fig.line(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
+        
+        #plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
+        #plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
+        #plt.title("Y_pred en vert, y_test en rouge")
+        #plt.show()
         #validation croisée
-        val_cro = cross_val_score(knnRegressor, self.X, self.y, cv=5)
+        val_cro = cross_val_score(knnRegressor, self.X, self.y, cv=nb_cv)
+        lst_cv=[]
+        for i in range(1,nb_cv+1):
+            lst_cv.append((str("essai : ")+str(i)))
+            
+        temp=pandas.DataFrame({"num de validation croisé":lst_cv,"res":val_cro})
+        columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+        self.val_cro=DataTable(source=ColumnDataSource(temp),columns=columns)
+
+        #self.val_cro=Div(text=" Cross Validation : "+str(val_cro))
+        self.title_for_vc=Div(text="Résultats de la validation croisée : ")
+
+        self.mean_val_cro=Div(text="MEAN Cross Validation :"+str(mean(val_cro)))
         print(val_cro)
         print(mean(val_cro))
+        return self
+
 
     #-------------------------------------------------------------------------
     #Création de la regressionn logistiques
     #-------------------------------------------------------------------------  
-    def Reseau_Neurone(self):
-        regr = MLPRegressor(random_state=1, max_iter=500).fit(self.XTrain, self.yTrain)
+    def Reseau_Neurone(self,max_iter,nb_cv=5):
+        regr = MLPRegressor(random_state=1, max_iter = max_iter).fit(self.XTrain, self.yTrain)
         yPred = regr.predict(self.XTest)
         
-        regr.score(self.XTest, self.yTest)
-        print(regr.score(self.XTest, self.yTest))
+        #regr.score(self.XTest, self.yTest)
+        #print(regr.score(self.XTest, self.yTest))
         
-         # The mean squared error
+
+               # The mean squared error
         print("Mean squared error")
         print(mean_squared_error(self.yTest, yPred))
+        self.mse=Div(text= "Mean squared error :"+str(mean_squared_error(self.yTest, yPred)))
         print("R2 score")
-        print(r2_score(self.yTest, yPred))        
+        print(r2_score(self.yTest, yPred))
+        self.r2=Div(text=" R2 score : "+str(r2_score(self.yTest, yPred)))
         
+        self.fig= figure(title="Y_pred en vert VS y_test en rouge")
+        self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="green", size=8)
+        self.fig.line(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
         
-        
-        
-        plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "blue") #Prédictions
-        plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
-        plt.title("Y_pred en bleue, y_test en rouge")
-        plt.show()
+        #plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
+        #plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
+        #plt.title("Y_pred en vert, y_test en rouge")
+        #plt.show()
         #validation croisée
-        val_cro = cross_val_score(regr, self.X, self.y, cv=5)
-        print("moyenne validation croisée")
+        val_cro = cross_val_score(regr, self.X, self.y, cv=nb_cv)
+        lst_cv=[]
+        for i in range(1,nb_cv+1):
+            lst_cv.append((str("essai : ")+str(i)))
+            
+        temp=pandas.DataFrame({"num de validation croisé":lst_cv,"res":val_cro})
+        columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+        self.val_cro=DataTable(source=ColumnDataSource(temp),columns=columns)
+
+        #self.val_cro=Div(text=" Cross Validation : "+str(val_cro))
+        self.title_for_vc=Div(text="Résultats de la validation croisée : ")
+
+        self.mean_val_cro=Div(text="MEAN Cross Validation :"+str(mean(val_cro)))
+        print(val_cro)
         print(mean(val_cro))
-        
+        return self
+
     def Anova_Desequilibre(self):
         ystr = str(self.yTrain.name)
         var_qual = ''

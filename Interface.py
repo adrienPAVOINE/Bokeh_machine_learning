@@ -35,6 +35,7 @@ import Classe_Reg
 from Classe import Algo_Var_Cat
 from Classe_Reg import Algo_Var_Num
 #
+from bokeh.models import CustomJS, MultiChoice
 
 
 ####################################################################
@@ -140,7 +141,11 @@ def update():
             #rajouter les autres algo de Classe.py en créant d'autres fonctions algo_maker
         else:
             nb_cv=Slider_vc.value
+            nb_kv = Slider_kv.value
+            max_iter = Slider_maxiter.value
             reg_mult_maker(new_df,nb_cv) 
+            knn_maker(new_df,nb_kv,nb_cv)
+            r_neur_maker(new_df,max_iter,nb_cv)
         
     #update du widget qui permet une multi-selection de variables (vars explicatives)
     multi_select_var.options=lst_expl
@@ -217,6 +222,8 @@ fig2.circle(x, x_exp, legend_label="log x", line_width=2, line_color="green", co
 Slider_vc=Slider(start=0, end=15, value=5, step=1, title="Cross Validation")
 #fonction qui execute la reg multiple sur le df bien formaté comme il faut
 
+
+
 def update_vc(new_df):
     #si le nb de vc a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
     nb_cv=Slider_vc.value
@@ -260,29 +267,129 @@ onglet2 = Panel(child=child_alg1, title="ALGO 1")
 #                    ONGLET 3 - ALGO N°2                           #######################
 ####################################################################
 
-#même principe
-x_log = np.log(x)
-fig1= figure(title='Fonction logarithme', x_axis_label='Ascisses', y_axis_label='Ordonnées')
-fig1.circle(x, x_log, legend_label="log x", line_width=2, line_color="green", color='green', size=5)
+#K plus proche voisin (cas target QT)
+#slider de selection du nombre de voisin
+Slider_kv=Slider(start=1, end=15, value=5, step=1, title="Nombre de K plus proches voisins")
+#slider de selection du nombre de validation croisée
+Slider_vc=Slider(start=0, end=15, value=5, step=1, title="Cross Validation")
 
+
+
+
+def update_vc(new_df):
+    #si le nb de vc a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
+    nb_cv=Slider_vc.value
+    obj=Algo_Var_Num(new_df)
+    obj.K_Proches_Voisins_Reg(nb_cv)
+    child_alg2.children[8]=obj.val_cro
+    child_alg2.children[9]=obj.mean_val_cro
+
+def update_kv(new_df):
+    #si le nb de k plus proches voisins a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
+    nb_kv=Slider_kv.value
+    obj=Algo_Var_Num(new_df)
+    obj.K_Proches_Voisins_Reg(nb_kv)
+    child_alg2.children[3]=obj.mse
+    child_alg2.children[4]=obj.r2
+    child_alg2.children[5]=obj.fig
+    child_alg2.children[6]=obj.title_for_vc
+    child_alg2.children[7]=Slider_vc
+    child_alg2.children[8]=obj.val_cro
+    child_alg2.children[9]=obj.mean_val_cro    
+
+    
+def knn_maker(new_df,kv, nb_cv):
+    
+    #instanciation de l'objet
+    obj=Algo_Var_Num(new_df)
+    #on récupère tout ce qu'on souhaite afficher dans l'onglet (appel de la méthode de la classe Classe_Reg)
+    #coeff,mse,r2s,cross_val,msg=
+    obj.K_Proches_Voisins_Reg(nb_cv)
+    
+    #affectation aux childrends du layout
+ 
+    child_alg2.children[2]=Slider_kv
+    child_alg2.children[3]=obj.mse
+    child_alg2.children[4]=obj.r2
+    child_alg2.children[5]=obj.fig
+    child_alg2.children[6]=obj.title_for_vc
+    child_alg2.children[7]=Slider_vc
+    child_alg2.children[8]=obj.val_cro
+    child_alg2.children[9]=obj.mean_val_cro
+    Slider_vc.on_change('value', lambda attr, old, new: update_vc(new_df))
+    Slider_kv.on_change('value', lambda attr, old, new: update_kv(new_df))
+
+#ici on instancie car c'est modifier dans la fonction update (donc il faut pouvoir y avoir accès en global)
 text_for_alg2=""
 your_alg2=Div(text=text_for_alg2)
-child_alg2=layout([your_alg2],[],[fig1])
+
+#creation du layout correspondant
+child_alg2=layout([your_alg2],[],[],[],[],[],[],[],[],[])
+
+#creation de l'algo
 onglet3 = Panel(child=child_alg2, title="ALGO 2")
 
 
 ####################################################################
 #                    ONGLET 4 - ALGO N°3                           #######################
 ####################################################################
+#slider de selection du nombre de voisin
+Slider_maxiter=Slider(start=400, end=600, value=500, step=50, title="Maximum d'iteration")
 
-#même principe
-x_log = np.log(x)
-fig1= figure(title='Fonction logarithme', x_axis_label='Ascisses', y_axis_label='Ordonnées')
-fig1.circle(x, x_log, legend_label="log x", line_width=2, line_color="green", color='green', size=5)
+Slider_vc=Slider(start=0, end=15, value=5, step=1, title="Cross Validation")
+#fonction qui execute la reg multiple sur le df bien formaté comme il faut
 
+
+
+def update_vc(new_df):
+    #si le nb de vc a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
+    nb_cv=Slider_vc.value
+    obj=Algo_Var_Num(new_df)
+    obj.Reseau_Neurone(nb_cv)
+    child_alg3.children[7]=obj.val_cro
+    child_alg3.children[8]=obj.mean_val_cro
+    
+    
+def update_maxiter(new_df):
+    #si le nb de k plus proches voisins a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
+    max_iter=Slider_maxiter.value
+    obj=Algo_Var_Num(new_df)
+    obj.Reseau_Neurone(max_iter)
+    child_alg3.children[3]=obj.mse
+    child_alg3.children[4]=obj.r2
+    child_alg3.children[5]=obj.fig
+    child_alg3.children[6]=obj.title_for_vc
+    child_alg3.children[7]=Slider_vc
+    child_alg3.children[8]=obj.val_cro
+    child_alg3.children[9]=obj.mean_val_cro     
+    
+def r_neur_maker(new_df,max_iter,nb_cv):
+    #instanciation de l'objet
+    obj=Algo_Var_Num(new_df)
+    #on récupère tout ce qu'on souhaite afficher dans l'onglet (appel de la méthode de la classe Classe_Reg)
+    #coeff,mse,r2s,cross_val,msg=
+    obj.Reseau_Neurone(nb_cv)
+    #affectation aux childrends du layout
+    child_alg3.children[2]=Slider_maxiter
+    child_alg3.children[3]=obj.mse
+    child_alg3.children[4]=obj.r2
+    child_alg3.children[5]=obj.fig
+    child_alg3.children[6]=obj.title_for_vc
+    child_alg3.children[7]=Slider_vc
+    child_alg3.children[8]=obj.val_cro
+    child_alg3.children[9]=obj.mean_val_cro
+    Slider_vc.on_change('value', lambda attr, old, new: update_vc(new_df))
+    Slider_maxiter.on_change('value', lambda attr, old, new: update_maxiter(new_df))
+    
+
+#ici on instancie car c'est modifier dans la fonction update (donc il faut pouvoir y avoir accès en global)
 text_for_alg3=""
 your_alg3=Div(text=text_for_alg3)
-child_alg3=layout([your_alg3],[],[fig1])
+
+#creation du layout correspondant
+child_alg3=layout([your_alg3],[],[],[],[],[],[],[],[], [])
+
+#creation de l'algo
 onglet4 = Panel(child=child_alg3, title="ALGO 3")
 
 
