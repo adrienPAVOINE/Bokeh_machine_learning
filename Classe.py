@@ -9,6 +9,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import plot_tree
 from sklearn.tree import export_text
+from sklearn.tree import export_graphviz
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from sklearn import preprocessing
@@ -22,7 +23,7 @@ import pandas
 
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import Slider, TextInput
-from bokeh.plotting import figure
+from bokeh.plotting import figure, show, output_file
 from bokeh.models import ColumnDataSource, FileInput
 from bokeh.transform import factor_cmap
 from bokeh.palettes import Spectral10
@@ -90,11 +91,22 @@ class Algo_Var_Cat():
         #-------------------------------------------------------------------------
     
         #Graph avec toutes les informations
-        
         #affichage sous forme de règles
         #plus facile à appréhender quand l'arbre est très grand
-        tree_rules = export_text(dtree,feature_names = list(self.df.columns[:-1]),show_weights=True)
+        #tree_rules = export_text(dtree,feature_names = list(self.df.columns[:-1]),show_weights=True)
+        tree_rules = export_graphviz(dtree,feature_names = list(self.df.columns[:-1]))
+        self.reglesT=Div(text="<h4>Régles de décision : </h4>")
         self.regles=Div(text=str(tree_rules))
+        
+        self.treeT=Div(text="<h4>Arbre de décision : </h4>")
+        #img_path = 'https://docs.bokeh.org/en/latest/_static/images/logo.png'
+        #p.image_url(url=[img_path],x=x_range[0],y=y_range[1],w=x_range[1]-x_range[0],h=y_range[1]-y_range[0])
+
+        plt.figure()
+        plot_tree(dtree,feature_names = list(self.df.columns[:-1]),filled=True)
+        plt.savefig('tree_high_dpi', dpi=95)
+        self.tree= Div(text="""<img src="C:/Users/ameli/Downloads/tree_high_dpi.jpg">""", width=150, height=150)
+        
         
         #-------------------------------------------------------------------------
         #Prédiction : 
