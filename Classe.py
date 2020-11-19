@@ -64,7 +64,7 @@ class Algo_Var_Cat():
         test = self.yTrain.value_counts(normalize=True)
         
         #distribution des classes
-        self.distrib1=Div(text="<h4>Distribution des classes :</h4>")
+        self.distrib1=Div(text="<h4>Distribution des classes de la variables cible :</h4>")
         self.distrib2=Div(text="Classe d'entrainement : <br/>")
         temp=pandas.DataFrame({"var":test.index,"distribution":test.values})
         columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
@@ -101,19 +101,22 @@ class Algo_Var_Cat():
         #-------------------------------------------------------------------------
         
         #importance des variables
-        imp = {"VarName":self.df.columns[1:65],"Importance":dtree.feature_importances_}
-        self.ceof1=Div(text="<h4>Importance des variables :</h4>")
-        self.coef=Div(text=str(pandas.DataFrame(imp).sort_values(by="Importance",ascending=False)))
-        
+        imp = {"VarName":self.X.columns,"Importance":dtree.feature_importances_}
+        self.coef1=Div(text="<h4>Importance des variables :</h4>")
+        temp=pandas.DataFrame(imp).sort_values(by="Importance",ascending=False)
+        columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+        self.coef=DataTable(source=ColumnDataSource(temp),columns=columns)
+
         #prédiction en test
         yPred = dtree.predict(self.XTest)
         
         #distribution des classes prédictes
-        #Intéressant d'afficher cette information
-        self.distribpred1=Div(text="Distribution des classes prédictes : </h4>" +str(np.unique(yPred,return_counts=True)))
-        #columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
-        #self.distribpred2=DataTable(source=temp[1],columns=temp[0])
-                
+       #Intéressant d'afficher cette information
+        self.distribpred1=Div(text="Classe de prédiction : <br/>")
+        temp=pandas.DataFrame({"var":np.unique(yPred,return_counts=True)[0],"distribution":np.unique(yPred,return_counts=True)[1]})
+        columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+        self.distribpred2=DataTable(source=ColumnDataSource(temp),columns=columns)
+               
         
         #matrice de confusion
         #Afficher la matrice de confusion !
@@ -150,7 +153,13 @@ class Algo_Var_Cat():
         self.precclasse=Div(text="<h4>Précision par classe : </h4>" + str(metrics.precision_score(self.yTest,yPred,average=None)))
         
         #rapport général
-        self.rapport=Div(text="<h4>Rapport sur la qualité de prédiction :</h4> "+str(metrics.classification_report(self.yTest,yPred)))
+        rap=metrics.classification_report(self.yTest,yPred)
+        #,output_dict=True
+        self.rap1=Div(text="<h4> Rapport sur la qualité de prédiction :</h4>")
+        #temp=pandas.DataFrame({"var":rap['C0'].keys(),"valeur":rap['C0'].values() })
+        #columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+        #self.rapport=DataTable(source=ColumnDataSource(temp),columns=columns)
+        self.rapport=Div(text=str(rap))
         
         #-------------------------------------------------------------------------
         #Validation croisée : 
@@ -183,8 +192,24 @@ class Algo_Var_Cat():
         tmp2=pandas.DataFrame(tmp2)
         tmp2=tmp2.rename(index={0 : "Constante"})
         final=pandas.concat([tmp2,tmp])
-        self.coef=Div(text="<h4>Table des coefficients et des intercepts : </h4>"+str(final))
-                
+        self.coefT=Div(text="<h4>Table des coefficients et des intercepts : </h4>")
+        
+
+        d = dict()
+        d["affichage"]= ['','','','','']
+        d["var"]=['Constante', 'area','parameter','compactness',"len_kernel"]
+        for i in (range(len(final.columns))):
+            d[final.columns[i]]=final.iloc[:,i]
+            
+        source = ColumnDataSource(data=d)
+        target = ColumnDataSource(data=dict(row_indices=[], labels=[]))
+        formatter = StringFormatter(font_style='bold')
+        columns=[TableColumn(field='var', title="", width=40, sortable=False, formatter=formatter)]
+        columns[1:(len(final.columns))]=[TableColumn(field=str(NomMod), title=str(NomMod), width=40, sortable=False) for NomMod in final.columns]
+        grouping = [GroupingInfo(getter='affichage'),]
+        self.coef = DataCube(source=source, columns=columns, grouping=grouping, target=target)
+        
+        
         #-------------------------------------------------------------------------
         #Prédiction : 
         #-------------------------------------------------------------------------
@@ -212,7 +237,7 @@ class Algo_Var_Cat():
         
         #taux de reconnaissance
         accSm = np.sum(np.diagonal(mcSmNumpy))/np.sum(mcSmNumpy)
-        self.Tx_reconnaissance=Div(text="<h4>Taux de reconnaissance :</h4> " + str(round(accSm),4))
+        self.Tx_reconnaissance=Div(text="<h4>Taux de reconnaissance :</h4> " + str(round(accSm,4)))
                 
         #calcul du taux d'erreur
         self.Tx_erreur=Div(text="<h4>Taux d'erreur :</h4><br/>" + str(1.0-metrics.accuracy_score(self.yTest,ypred)))
@@ -256,6 +281,7 @@ class Algo_Var_Cat():
         #correction des coefficients - dé-standardisation
         #par les écarts-type utilisés lors de la standardisation des variables
         coefUnstd = lrSkStd.coef_[0] / stds.scale_
+        self.coefT=Div(text="<h4>Coefficients des variables : </h4>")
         temp=pandas.DataFrame({"var":ZTrain.columns,"coef":coefUnstd})
         columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
         self.coef=DataTable(source=ColumnDataSource(temp),columns=columns)
@@ -291,7 +317,7 @@ class Algo_Var_Cat():
             #matrice de confusion
             #if len(DTrain[str(self.var_cible)].unique())==2 :
             mcSm=pandas.crosstab(self.yTest,predSk)
-            print(mcSm[0][0],mcSm[0][1])
+            
             self.matrice_confusion=Div(text="</br><h4>Matrice de confusion :</h4>")
             source = ColumnDataSource(data=dict(
                 affichage=["",""],
