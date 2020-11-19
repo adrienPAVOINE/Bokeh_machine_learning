@@ -131,8 +131,52 @@ onglet1= Panel(child=child_onglet1,title="Welcome !")
 ####################################################################
 #                    ONGLET 2 - ALGO N°1                           #######################
 ####################################################################
-    
 from Classe import Algo_Var_Cat
+
+df2 = pd.read_csv("opt_digits.txt",sep="\t",header=0)
+#df.info()
+df2=df2.iloc[:,0:65]
+
+test1=Algo_Var_Cat(df2,var_cible='chiffre')
+test1.Arbre_decision()
+
+text_for_alg1="Arbre de décision"
+your_alg1=Div(text=text_for_alg1)
+child_alg1=layout([your_alg1],[test1.distrib1],[test1.distrib2],[test1.distrib3],
+                  [test1.distrib4],[test1.distrib5],[test1.regles],[test1.coef],
+                  [test1.distribpred1],
+                  [test1.matrice_confusion],[test1.cube],[test1.Tx_reconnaissance],
+                  [test1.rapclass],[test1.Tx_erreur],[test1.rapport],[test1.int_succes],
+                  [test1.moy_succes])
+onglet2 = Panel(child=child_alg1, title="ALGO 1")
+
+
+####################################################################
+#                    ONGLET 3 - ALGO N°2                           #######################
+####################################################################
+
+'''
+test2=Algo_Var_Cat(df)
+test2.Analyse_Discriminante()
+
+text_for_alg2="Analyse Discriminante"
+your_alg2=Div(text=text_for_alg2)
+child_alg2=layout([your_alg2],[test2.distrib1],[test2.distrib2],[test2.distrib3],
+                      [test2.distrib4],[test2.distrib5],[test2.coef],[test2.matrice_confusion],
+                  [test2.matrice_confusion],[test3.cube],[test2.Tx_reconnaissance],[test2.Tx_erreur],[test2.rapport],
+                  [test2.int_succes],[test2.moy_succes])
+'''
+text_for_alg2="Analyse Discriminante"
+your_alg2=Div(text=text_for_alg2)
+child_alg2=layout([your_alg2])
+onglet3 = Panel(child=child_alg2, title="ALGO 2")
+
+
+####################################################################
+#                    ONGLET 4 - ALGO N°3                           #######################
+####################################################################
+
+
 #Données pour reg test 2
 df4=pd.read_excel("diabete_reg_logistique.xlsx")
 #Vérif si la var cible a pour modalité O et 1
@@ -147,57 +191,38 @@ for i in range(0,len(df4['diabete'])):
         df4['diabete'][i]=1
 df4['diabete'] = df4['diabete'].astype('int')  
 
-test3=Algo_Var_Cat(df4)
-#multi = T ou F
-multi_classe=False
+#Donnée pour Regression log multinomiale :
+dfTrain = pd.read_excel("waveform.xlsx", sheet_name = "apprentissage")
+#chargement de l'échantillon test
+dfTest = pd.read_excel("waveform.xlsx", sheet_name = "test")
+df5=pd.concat([dfTrain,dfTest])
+
+#Test si la variable cible est multiclasse (+ de 2 niveaux de modalités)
+if (len(df5['classe'].unique())==2) :
+    multi_classe=False
+else : 
+    multi_classe=True
+
+test3=Algo_Var_Cat(df5,var_cible='classe') 
 test3.Regression_log(multi=multi_classe)
 
-text_for_alg1=""
-your_alg1=Div(text=text_for_alg1)
+text_for_alg3="Regression logistique :"
+your_alg3=Div(text=text_for_alg3)
 #ordre d'affichage des variables de classe de l'Algo
 if multi_classe==False :
-    child_alg1=layout([your_alg1],[test3.distrib],[test3.coef],[test3.const],[test3.log_vraisemblance],
-                      [test3.matrice_confusion],[test3.Tx_reconnaissance],
+    child_alg3=layout([your_alg3],[test3.distrib1],[test3.distrib2],[test3.distrib3],
+                      [test3.distrib4],[test3.distrib5],[test3.coef],[test3.const],
+                      [test3.log_vraisemblance],
+                      [test3.matrice_confusion],[test3.cube],[test3.Tx_reconnaissance],
+                      [test3.Tx_erreur],
                       [test3.rapport],[test3.fig2],[test3.aucSm2],[test3.int_succes],
                       [test3.moy_succes])
 else :
-    child_alg1=layout([your_alg1],[test3.distrib],[test3.coef],[test3.const],
-                      [test3.matrice_confusion],[test3.Tx_reconnaissance],
-                      [test3.rapport],[test3.int_succes],[test3.moy_succes])
-onglet2 = Panel(child=child_alg1, title="ALGO 1")
-
-
-
-####################################################################
-#                    ONGLET 3 - ALGO N°2                           #######################
-####################################################################
-
-x = np.arange(start=1, stop=6)
-x_exp = np.exp(x)
-
-x_log = np.log(x)
-fig1= figure(title='Fonction logarithme', x_axis_label='Ascisses', y_axis_label='Ordonnées')
-fig1.circle(x, x_log, legend_label="log x", line_width=2, line_color="green", color='green', size=5)
-
-text_for_alg2=""
-your_alg2=Div(text=text_for_alg2)
-child_alg2=layout([your_alg2],[],[fig1])
-onglet3 = Panel(child=child_alg2, title="ALGO 2")
-
-
-####################################################################
-#                    ONGLET 4 - ALGO N°3                           #######################
-####################################################################
-
-x_log = np.log(x)
-fig1= figure(title='Fonction logarithme', x_axis_label='Ascisses', y_axis_label='Ordonnées')
-fig1.circle(x, x_log, legend_label="log x", line_width=2, line_color="green", color='green', size=5)
-
-text_for_alg3=""
-your_alg3=Div(text=text_for_alg3)
-child_alg3=layout([your_alg3],[],[fig1])
+    child_alg3=layout([your_alg3],[test3.distrib1],[test3.distrib2],[test3.distrib3],
+                      [test3.distrib4],[test3.distrib5],[test3.coef],[test3.const],
+                      [test3.matrice_confusion],[test3.cube],[test3.Tx_reconnaissance],
+                      [test3.Tx_erreur],[test3.rapport],[test3.int_succes],[test3.moy_succes])
 onglet4 = Panel(child=child_alg3, title="ALGO 3")
-
 
 ####################################################################
 #                    MISE EN PLACE DU PANEL                        #######################
