@@ -36,7 +36,7 @@ from bokeh.models import ColumnDataSource, FileInput
 from bokeh.transform import factor_cmap
 from bokeh.palettes import Spectral10
 from bokeh.models import HoverTool, Div,Panel,Tabs
-from bokeh.models.widgets import MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
+from bokeh.models.widgets import Paragraph,MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
 
 
 
@@ -75,65 +75,78 @@ class Algo_Var_Num():
     #Création de de la régression linéaire multiple et de la prédiction
     #-------------------------------------------------------------------------
     def Regression_line_multiple(self,nb_cv=5):
+        test=True
+        df=self.df
+        for i in df.columns:
+            if (np.issubdtype(df[i].dtype, np.number)!=True):
+                test=False
+            print(test)
+        if (test==True):
+            self.msg=Paragraph(text="""Vous êtes dans la partie réservé à la prédiction d'une variable quantitative par d'autres variables explicatives qui sont également quantitatives. Dans cet onglet vous trouverez tout d'abord une pré-visualisation des données sur lesquelles va s'appliquer l'algorithme. Puis vous pourrez observer la liste des coefficients correspondant à chaque variables explicative. Afin de savoir si votre modèle est bon ou non, vous retrouverez deux indicateurs qui sont le R2 score ainsi que le MSE. Enfin sous la visualisation de vos données 'prédites vs test', vous pourrez vous même faire de la cross validation selon deux critères le R2 ou le MSE, utilisez juste le slider pour confirmer que votre modèle est bon ou non !""",width=1200, height=100)
 
-        #instanciation - objet arbre de décision
-        #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
-        lin_reg_mod = LinearRegression()
-        lin_reg_mod.fit(self.XTrain,self.yTrain)
-    
-        # The coefficients
-        print('Coefficients: \n', lin_reg_mod.coef_)
+            #instanciation - objet arbre de décision
+            #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
+            lin_reg_mod = LinearRegression()
+            lin_reg_mod.fit(self.XTrain,self.yTrain)
         
-        #update section for bokeh-------------
-        coeff_lin_reg=lin_reg_mod.coef_
-        xt=self.XTrain
-        temp=pandas.DataFrame({"var":xt.columns,"coef":coeff_lin_reg})
-        columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
-        self.title_for_coeff=Div(text="Coefficients de la régression pour les variables sélectionnées : ")
-        self.coef=DataTable(source=ColumnDataSource(temp),columns=columns)
-        print(self.coef)
-        #end section for bokeh-------------
-        
-        #-------------------------------------------------------------------------
-        #Prédiction : 
-        #-------------------------------------------------------------------------
-
-        #prédiction en test
-
-        yPred = lin_reg_mod.predict(self.XTest)
-        
-         # The mean squared error
-        print("Mean squared error")
-        print(mean_squared_error(self.yTest, yPred))
-        self.mse=Div(text= "Mean squared error :"+str(mean_squared_error(self.yTest, yPred)))
-        print("R2 score")
-        print(r2_score(self.yTest, yPred))
-        self.r2=Div(text=" R2 score : "+str(r2_score(self.yTest, yPred)))
-        
-        self.fig= figure(title="Y_pred en vert VS y_test en rouge")
-        self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="green", size=8)
-        self.fig.circle(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
-        
-        #plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
-        #plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
-        #plt.title("Y_pred en vert, y_test en rouge")
-        #plt.show()
-        #validation croisée
-        val_cro = cross_val_score(lin_reg_mod, self.X, self.y, cv=nb_cv,scoring=make_scorer(mean_squared_error))
-        lst_cv=[]
-        for i in range(1,nb_cv+1):
-            lst_cv.append((str("essai : ")+str(i)))
+            # The coefficients
+            print('Coefficients: \n', lin_reg_mod.coef_)
             
-        temp=pandas.DataFrame({"num de validation croisé":lst_cv,"res":val_cro})
-        columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
-        self.val_cro=DataTable(source=ColumnDataSource(temp),columns=columns)
-
-        #self.val_cro=Div(text=" Cross Validation : "+str(val_cro))
-        self.title_for_vc=Div(text="Résultats de la validation croisée : ")
-
-        self.mean_val_cro=Div(text="MEAN Cross Validation :"+str(mean(val_cro)))
-        print(val_cro)
-        print(mean(val_cro))
+            #update section for bokeh-------------
+            coeff_lin_reg=lin_reg_mod.coef_
+            xt=self.XTrain
+            temp=pandas.DataFrame({"var":xt.columns,"coef":coeff_lin_reg})
+            columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+            self.title_for_coeff=Div(text="<h2>Coefficients de la régression pour les variables sélectionnées </h2>")
+            self.coef=DataTable(source=ColumnDataSource(temp),columns=columns)
+            print(self.coef)
+            #end section for bokeh-------------
+            
+            #-------------------------------------------------------------------------
+            #Prédiction : 
+            #-------------------------------------------------------------------------
+    
+            #prédiction en test
+    
+            yPred = lin_reg_mod.predict(self.XTest)
+            
+             # The mean squared error
+            print("Mean squared error")
+            print(mean_squared_error(self.yTest, yPred))
+            self.title_indicators=Div(text= "<h2>Indicateurs de qualité</h2>")
+            self.mse=Div(text= "Mean squared error :"+str(mean_squared_error(self.yTest, yPred)))
+            print("R2 score")
+            print(r2_score(self.yTest, yPred))
+            self.r2=Div(text=" R2 score : "+str(r2_score(self.yTest, yPred)))
+            self.title_fig=Div(text= "<h2>Visualisation des résultats</h2>")
+            self.fig= figure(title="Y_pred en vert VS y_test en rouge")
+            self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="green", size=8)
+            self.fig.line(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
+            
+            #plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
+            #plt.plot(range(len(self.yTest)), np.sort(self.yTest), color = "red") #Données réelles
+            #plt.title("Y_pred en vert, y_test en rouge")
+            #plt.show()
+            #validation croisée
+            #,scoring=make_scorer(mean_squared_error)
+            val_cro = cross_val_score(lin_reg_mod, self.X, self.y, cv=nb_cv)
+            lst_cv=[]
+            for i in range(1,nb_cv+1):
+                lst_cv.append((str("essai : ")+str(i)))
+                
+            temp=pandas.DataFrame({"num de validation croisé":lst_cv,"res":val_cro})
+            columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
+            self.val_cro=DataTable(source=ColumnDataSource(temp),columns=columns)
+    
+            #self.val_cro=Div(text=" Cross Validation : "+str(val_cro))
+            self.title_for_vc=Div(text="<h2>Résultats de la validation croisée</h2>")
+    
+            self.mean_val_cro=Div(text="MEAN Cross Validation :"+str(mean(val_cro)))
+            print(val_cro)
+            print(mean(val_cro))
+        else:
+            self.msg="Attention une de vos variables explicatives n'est pas numérique, l'algorithme ne peut pas fonctionner !"
+            
         return self
 
         
@@ -165,8 +178,8 @@ class Algo_Var_Num():
         print(r2_score(self.yTest, yPred))
         self.r2=Div(text=" R2 score : "+str(r2_score(self.yTest, yPred)))
         
-        self.fig= figure(title="Y_pred en vert VS y_test en rouge")
-        self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="green", size=8)
+        self.fig= figure(title="Y_pred en bleu VS y_test en rouge")
+        self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="blue", size=8)
         self.fig.line(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
         
         #plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
@@ -211,8 +224,8 @@ class Algo_Var_Num():
         print(r2_score(self.yTest, yPred))
         self.r2=Div(text=" R2 score : "+str(r2_score(self.yTest, yPred)))
         
-        self.fig= figure(title="Y_pred en vert VS y_test en rouge")
-        self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="green", size=8)
+        self.fig= figure(title="Y_pred en noir VS y_test en rouge")
+        self.fig.circle(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color="black", size=8)
         self.fig.line(range(len(self.yTest)), np.sort(self.yTest), color = "red", line_width=2)
         
         #plt.scatter(range(len(self.yTest)), yPred[np.argsort(self.yTest)], color = "green") #Prédictions
@@ -236,6 +249,8 @@ class Algo_Var_Num():
         print(val_cro)
         print(mean(val_cro))
         return self
+
+
 
     def Anova_Desequilibre(self):
         ystr = str(self.yTrain.name)

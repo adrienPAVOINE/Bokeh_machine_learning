@@ -29,14 +29,14 @@ from bokeh.models import ColumnDataSource, FileInput
 from bokeh.transform import factor_cmap
 from bokeh.palettes import Spectral10
 from bokeh.models import HoverTool, Div,Panel,Tabs
-from bokeh.models.widgets import MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
+from bokeh.models.widgets import Paragraph,MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown
 import Classe
 import Classe_Reg
 from Classe import Algo_Var_Cat
 from Classe_Reg import Algo_Var_Num
 #
 from bokeh.models import CustomJS, MultiChoice
-
+from bokeh.plotting import figure, show, output_file
 
 ####################################################################
 #                    ONGLET 1 - SETTINGS                           #######################
@@ -86,7 +86,7 @@ def load_data():
     Columns = [TableColumn(field=Ci, title=Ci) for Ci in df.columns] # bokeh columns
     data_table = DataTable(columns=Columns, source=ColumnDataSource(df[:10])) # bokeh table
     #on affecte la data_table (prévisualisation des données) à l'élément du layout qui est attribué à la pré-visaulisation des données
-    child_onglet1.children[4] =data_table
+    child_onglet1.children[6] =data_table
     update_controls()
 
 def update_controls():
@@ -108,14 +108,14 @@ def update_controls():
         
         #si c'est une var textuelle alors les 3 algos possibles sont :
         if(var_type=='String'):
-            your_alg1.text='Arbre de décision'
-            your_alg2.text='Analyse_Discriminante'
-            your_alg3.text='Regression_log'
+            your_alg1.text='<center><h1 >Arbre de décision</h1></center>'
+            your_alg2.text='<center><h1 >Analyse_Discriminante</h1></center>'
+            your_alg3.text='<center><h1 >Regression_log</h1></center>'
         # sinon :
         else:
-            your_alg1.text='Regression_line_multiple'
-            your_alg2.text='K_Proches_Voisins_Reg'
-            your_alg3.text='Reseau_Neurone'  
+            your_alg1.text='<center><h1 >Regression_line_multiple</h1></center>'
+            your_alg2.text='<center><h1 >K_Proches_Voisins_Reg</h1></center>'
+            your_alg3.text='<center><h1 >Reseau_Neurone</h1></center>'  
     # si la valeur de menu=='' l'utilisateur n'a pas encore définit de var cible
     else:
         var_type='Pas de colonnes sélectionnées'
@@ -146,9 +146,9 @@ def update_algos():
             Columns_new_df = [TableColumn(field=Ci, title=Ci) for Ci in new_df.columns] # bokeh columns
             data_table_new_df = DataTable(columns=Columns_new_df, source=ColumnDataSource(new_df[:10])) # bokeh table
             #affectation de la prévisaulisation sur les 3 onglets des algos
-            child_alg1.children[1]=data_table_new_df
-            child_alg2.children[1]=data_table_new_df
-            child_alg3.children[1]=data_table_new_df
+            child_alg1.children[6]=data_table_new_df
+            child_alg2.children[6]=data_table_new_df
+            child_alg3.children[6]=data_table_new_df
             
             #si la var cible est textuelle alors on execute des fonctions qui vont lancer les algos appropriés
             if(var_type=='String'):
@@ -156,11 +156,13 @@ def update_algos():
                 #rajouter les autres algo de Classe.py en créant d'autres fonctions algo_maker
             else:
                 nb_cv=Slider_vc.value
+                nb_cv_knn=Slider_vc_knn.value
+                nb_cv_rn=Slider_vc_rn.value
                 nb_kv = Slider_kv.value
                 max_iter = Slider_maxiter.value
                 reg_mult_maker(new_df,nb_cv) 
-                knn_maker(new_df,nb_kv,nb_cv)
-                r_neur_maker(new_df,max_iter,nb_cv)
+                knn_maker(new_df,nb_kv,nb_cv_knn)
+                r_neur_maker(new_df,max_iter,nb_cv_rn)
 
 
 
@@ -181,10 +183,10 @@ bt.on_click(update_algos)
 #-------------------------------------------------------------------------
 #Organisation du 1er onglet : 
 #-------------------------------------------------------------------------
-
-
+p = Paragraph(text="""Bienvenue dans notre outil de prédiction de données par apprentassage non supervisé. Pour commencer, vous pouvez importer vos données en mettant le chemin complet de votre fichier, attention votre fichier doit être au format .csv et avoir comme séparateur des virgules. Une fois votre fichier importé, vous pourrez facilement pré-visualiser vos données. Pour finir, choisissez votre variables cible et vos variables explicatives, puis lancez l'analyse ! Laissez vous ensuite guider dans les onglets dédiés aux algorithmes... :)""",width=1200, height=100)
+line=Div(text="__________________________________________________________________________")
 title = Div(text="<center><h1 >Interface d'analyse de données</h1></center>")
-sdl=column(Div(text="<br/>"))
+sdl=Div(text="<br/>")
 authors = Div(text="<h3 >Clément Le Padellec - Adrien Pavoine - Amélie Picard</h3>")
 Previsualisation_data=Div(text="<center><h2 >Prévisualisation des données</h2></center>")
 Target_choice=Div(text="<center><h2 >Choix de la variable cible</h2></center>")
@@ -193,11 +195,11 @@ Explain_choice=Div(text="<center><h2 >Choix des variables explicatives</h2></cen
 text_for_explain=""
 your_target=Div(text=text_for_target)
 your_explain=Div(text=text_for_explain)
-header=column(title,authors, width=1500)
+header=column(title,authors,p, width=1500)
 contents=row(file_input, width=800)
 
 #mise en place de l'onglet un, les éléments à l'intérieur sont les "childrens"
-child_onglet1 = layout([header],[sdl],[Previsualisation_data],[file_input],[],[Target_choice],[menu],[your_target],[Explain_choice],[multi_select_var],[your_explain],[bt])
+child_onglet1 = layout([header],[line],[Previsualisation_data],[line],[sdl],[file_input],[],[line],[Target_choice],[line],[sdl],[menu],[your_target],[line],[Explain_choice],[line],[sdl],[multi_select_var],[your_explain],[bt])
 
 #création de l'onglet
 onglet1= Panel(child=child_onglet1,title="Welcome !")
@@ -213,6 +215,11 @@ onglet1= Panel(child=child_onglet1,title="Welcome !")
 def decision_tree_maker(new_df):
     print('a compléter')
     
+    p = figure(x_range=(0,100), y_range=(0,100))
+    p.image_url(url=['tree_high_dpi.png'], x=0, y=0, w=50, h=50)
+    ## could also leave out keywords
+    # p.image_url(['tree.png'], 0, 1, 0.8, h=0.6)  
+    child_alg1.children[2]=p
 
 #des exemples - à supprimer
 x = np.arange(start=1, stop=6)
@@ -233,8 +240,8 @@ def update_vc(new_df):
     nb_cv=Slider_vc.value
     obj=Algo_Var_Num(new_df)
     obj.Regression_line_multiple(nb_cv)
-    child_alg1.children[9]=obj.val_cro
-    child_alg1.children[10]=obj.mean_val_cro
+    child_alg1.children[21]=obj.val_cro
+    child_alg1.children[22]=obj.mean_val_cro
     
 def reg_mult_maker(new_df,nb_cv):
     
@@ -244,17 +251,24 @@ def reg_mult_maker(new_df,nb_cv):
     #on récupère tout ce qu'on souhaite afficher dans l'onglet (appel de la méthode de la classe Classe_Reg)
     #coeff,mse,r2s,cross_val,msg=
     obj.Regression_line_multiple(nb_cv)
-    
+    line=Div(text="__________________________________________________________________________")
     #affectation aux childrends du layout
-    child_alg1.children[2]=obj.title_for_coeff
-    child_alg1.children[3]=obj.coef
-    child_alg1.children[4]=obj.mse
-    child_alg1.children[5]=obj.r2
-    child_alg1.children[6]=obj.fig
-    child_alg1.children[7]=obj.title_for_vc
-    child_alg1.children[8]=Slider_vc
-    child_alg1.children[9]=obj.val_cro
-    child_alg1.children[10]=obj.mean_val_cro
+    child_alg1.children[1]=obj.msg
+    child_alg1.children[8]=obj.title_for_coeff
+    child_alg1.children[9]=sdl
+    child_alg1.children[10]=obj.coef
+    child_alg1.children[11]=obj.title_indicators
+    child_alg1.children[12]=sdl
+    child_alg1.children[13]=obj.mse
+    child_alg1.children[14]=obj.r2
+    child_alg1.children[15]=obj.title_fig
+    child_alg1.children[16]=sdl
+    child_alg1.children[17]=obj.fig
+    child_alg1.children[18]=obj.title_for_vc
+    child_alg1.children[19]=sdl
+    child_alg1.children[20]=Slider_vc
+    child_alg1.children[21]=obj.val_cro
+    child_alg1.children[22]=obj.mean_val_cro
     Slider_vc.on_change('value', lambda attr, old, new: update_vc(new_df))
     
 
@@ -263,7 +277,7 @@ text_for_alg1=""
 your_alg1=Div(text=text_for_alg1)
 
 #creation du layout correspondant
-child_alg1=layout([your_alg1],[],[],[],[],[],[],[],[],[],[])
+child_alg1=layout([your_alg1],[],[line],[Previsualisation_data],[line],[sdl],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[])
 
 #creation de l'algo
 onglet2 = Panel(child=child_alg1, title="ALGO 1")
@@ -275,18 +289,19 @@ onglet2 = Panel(child=child_alg1, title="ALGO 1")
 #slider de selection du nombre de voisin
 Slider_kv=Slider(start=1, end=15, value=5, step=1, title="Nombre de K plus proches voisins")
 
+Slider_vc_knn=Slider(start=1, end=15, value=5, step=1, title="Cross Validation")
 
 
 def update_kv(new_df):
     #si le nb de k plus proches voisins a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
     nb_kv=Slider_kv.value
+    nb_cv_k=Slider_vc_knn.value
     obj=Algo_Var_Num(new_df)
-    obj.K_Proches_Voisins_Reg(nb_kv)
+    obj.K_Proches_Voisins_Reg(nb_kv,nb_cv_k)
     child_alg2.children[3]=obj.mse
     child_alg2.children[4]=obj.r2
     child_alg2.children[5]=obj.fig
     child_alg2.children[6]=obj.title_for_vc
-    child_alg2.children[7]=Slider_vc
     child_alg2.children[8]=obj.val_cro
     child_alg2.children[9]=obj.mean_val_cro    
 
@@ -306,10 +321,10 @@ def knn_maker(new_df,kv, nb_cv):
     child_alg2.children[4]=obj.r2
     child_alg2.children[5]=obj.fig
     child_alg2.children[6]=obj.title_for_vc
-    child_alg2.children[7]=Slider_vc
+    child_alg2.children[7]=Slider_vc_knn
     child_alg2.children[8]=obj.val_cro
     child_alg2.children[9]=obj.mean_val_cro
-    Slider_vc.on_change('value', lambda attr, old, new: update_vc(new_df))
+    Slider_vc_knn.on_change('value', lambda attr, old, new: update_kv(new_df))
     Slider_kv.on_change('value', lambda attr, old, new: update_kv(new_df))
 
 #ici on instancie car c'est modifier dans la fonction update (donc il faut pouvoir y avoir accès en global)
@@ -329,6 +344,7 @@ onglet3 = Panel(child=child_alg2, title="ALGO 2")
 #slider de selection du nombre de voisin
 Slider_maxiter=Slider(start=400, end=600, value=500, step=50, title="Maximum d'iteration")
 
+Slider_vc_rn=Slider(start=1, end=15, value=5, step=1, title="Cross Validation")
 
 #fonction qui execute la reg multiple sur le df bien formaté comme il faut
     
@@ -336,13 +352,15 @@ Slider_maxiter=Slider(start=400, end=600, value=500, step=50, title="Maximum d'i
 def update_maxiter(new_df):
     #si le nb de k plus proches voisins a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
     max_iter=Slider_maxiter.value
+    nb_cv_rn=Slider_vc_rn.value
+    print("debut")
     obj=Algo_Var_Num(new_df)
-    obj.Reseau_Neurone(max_iter)
+    obj.Reseau_Neurone(max_iter,nb_cv_rn)
+    print("fin")
     child_alg3.children[3]=obj.mse
     child_alg3.children[4]=obj.r2
     child_alg3.children[5]=obj.fig
     child_alg3.children[6]=obj.title_for_vc
-    child_alg3.children[7]=Slider_vc
     child_alg3.children[8]=obj.val_cro
     child_alg3.children[9]=obj.mean_val_cro     
     
@@ -358,10 +376,10 @@ def r_neur_maker(new_df,max_iter,nb_cv):
     child_alg3.children[4]=obj.r2
     child_alg3.children[5]=obj.fig
     child_alg3.children[6]=obj.title_for_vc
-    child_alg3.children[7]=Slider_vc
+    child_alg3.children[7]=Slider_vc_rn
     child_alg3.children[8]=obj.val_cro
     child_alg3.children[9]=obj.mean_val_cro
-    Slider_vc.on_change('value', lambda attr, old, new: update_vc(new_df))
+    Slider_vc_rn.on_change('value', lambda attr, old, new: update_maxiter(new_df))
     Slider_maxiter.on_change('value', lambda attr, old, new: update_maxiter(new_df))
     
 
