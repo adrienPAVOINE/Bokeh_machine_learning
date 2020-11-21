@@ -50,14 +50,14 @@ class Algo_Var_Num():
     def __init__(self,df,size=-1):
         #dernière colonne est celle des Y
         self.df=df
-                #################
-        self.df = pandas.get_dummies(self.df)
-        #############################
         self.y=df.iloc[:,-1]
         self.X=df.iloc[:,0:(len(self.df.columns)-1)]
         self.X = pandas.get_dummies(data=self.X, drop_first=True)
+        self.XTrain, self.XTest, self.yTrain, self.yTest = train_test_split(self.X, self.y, test_size=0.20, random_state = 5)
+
+        '''
         if (size==-1) : 
-            size=round(len(self.df.values[:,-1])*0.3)
+            size=round(len(self.df.values[:,-1])*0.35)
         #subdiviser les données en échantillons d'apprentissage et de test
         #Choix à l'utilisateur, taille de l'échantillon test : sinon le choix par défaut 70% 30%
         self.dfTrain, self.dfTest = train_test_split(self.df,test_size=size,random_state=9)
@@ -75,7 +75,7 @@ class Algo_Var_Num():
         #print(self.yTest.value_counts(normalize=True))
         #print(self.yTrain,self.XTrain)
     
-    
+    '''
     #-------------------------------------------------------------------------
     #Création de de la régression linéaire multiple et de la prédiction
     #-------------------------------------------------------------------------
