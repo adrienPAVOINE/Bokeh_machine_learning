@@ -156,7 +156,8 @@ def update_algos():
             if(var_type=='String'):
                 nb_cv=Slider_vc.value
                 decision_tree_maker(new_df,nb_cv)
-                analyse_disc_maker(new_df)
+                analyse_disc_maker(new_df,nb_cv)
+                reg_log_maker(new_df,nb_cv)
                 
             else:
                 nb_cv=Slider_vc.value
@@ -311,22 +312,11 @@ onglet2 = Panel(child=child_alg1, title="ALGO 1")
 #                    ONGLET 3 - ALGO N°2                           #######################
 ####################################################################
 
-#Analyse Discriminante (cas target QL)
-
-
-#fonction qui execute le decision_tree sur le df bien formaté comme il faut
-def analyse_disc_maker(new_df):
-    print('a compléter')
-
-
-
-
 #K plus proche voisin (cas target QT)
 #slider de selection du nombre de voisin
 Slider_kv=Slider(start=1, end=15, value=5, step=1, title="Nombre de K plus proches voisins")
 
 Slider_vc_knn=Slider(start=1, end=10, value=5, step=1, title="Cross Validation")
-
 
 def update_kv(new_df):
     #si le nb de k plus proches voisins a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
@@ -341,7 +331,43 @@ def update_kv(new_df):
     child_alg2.children[19]=obj.val_cro
     child_alg2.children[20]=obj.mean_val_cro    
 
+def update_kv2(new_df):
+    nb_cv_k=Slider_vc_knn.value
+    obj=Algo_Var_Cat(new_df)
+    obj.Analyse_Discriminante(nb_cross_val=nb_cv_k)
     
+    child_alg2.children[21]=obj.int_succes
+    child_alg2.children[22]=obj.moy_succes    
+
+
+#Analyse Discriminante (cas target QL)
+#fonction qui execute le decision_tree sur le df bien formaté comme il faut
+def analyse_disc_maker(new_df,nb_cv_k):
+    obj=Algo_Var_Cat(new_df)
+    obj.Analyse_Discriminante(nb_cv_k)
+    
+    #affectation aux childrends du layout
+    child_alg2.children[1]=obj.msg
+    child_alg2.children[8]=obj.distrib1
+    child_alg2.children[9]=obj.distrib2
+    child_alg2.children[10]=obj.distrib3
+    child_alg2.children[11]=obj.distrib4
+    child_alg2.children[12]=obj.distrib5
+    child_alg2.children[13]=sdl
+    child_alg2.children[14]=obj.coefT
+    child_alg2.children[15]=obj.coef
+    child_alg2.children[16]=obj.matrice_confusion
+    child_alg2.children[17]=obj.cube
+    child_alg2.children[18]=obj.Tx_reconnaissance
+    child_alg2.children[19]=obj.Tx_erreur
+    child_alg2.children[20]=Slider_vc_knn
+    child_alg2.children[21]=obj.int_succes
+    child_alg2.children[22]=obj.moy_succes
+    Slider_vc_knn.on_change('value', lambda attr, old, new: update_kv2(new_df))
+    
+
+
+
 def knn_maker(new_df,kv, nb_cv_knn):
     
     #instanciation de l'objet
@@ -383,11 +409,6 @@ onglet3 = Panel(child=child_alg2, title="ALGO 2")
 #                    ONGLET 4 - ALGO N°3                           #######################
 ####################################################################
 
-#Reg Log (cas target QL)
-def reg_log_maker(new_df):
-    print('a compléter')
-
-
 #slider de selection du nombre de voisin
 
 Slider_vc_rn=Slider(start=1, end=15, value=5, step=1, title="Cross Validation")
@@ -403,6 +424,46 @@ def update_vc_rn(new_df):
     child_alg3.children[19]=obj.val_cro
     child_alg3.children[20]=obj.mean_val_cro     
     
+def update_vc_rn2(new_df):
+    #si le nb de k plus proches voisins a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
+    nb_cv_rn=Slider_vc_rn.value
+    obj=Algo_Var_Cat(new_df) 
+    obj.Regression_log(nb_cv_rn)
+    child_alg3.children[25]=obj.int_succes
+    child_alg3.children[26]=obj.moy_succes  
+    
+
+#Reg Log (cas target QL)
+def reg_log_maker(new_df,nb_cv_rn):
+    
+    obj=Algo_Var_Cat(new_df) 
+    obj.Regression_log(nb_cv_rn)
+    
+    child_alg3.children[1]=obj.msg
+
+    child_alg3.children[8]=obj.distrib1
+    child_alg3.children[9]=obj.distrib2
+    child_alg3.children[10]=obj.distrib3
+    child_alg3.children[11]=obj.distrib4
+    child_alg3.children[12]=obj.distrib5
+    child_alg3.children[13]=sdl
+    child_alg3.children[14]=obj.coefT
+    child_alg3.children[15]=obj.coef
+    child_alg3.children[16]=obj.const
+    child_alg3.children[17]=sdl
+    child_alg3.children[18]=obj.log_vraisemblance
+    child_alg3.children[19]=obj.matrice_confusion
+    child_alg3.children[20]=obj.cube
+    child_alg3.children[21]=sdl
+    child_alg3.children[22]=obj.Tx_reconnaissance
+    child_alg3.children[23]=obj.Tx_erreur
+    child_alg3.children[24]=Slider_vc_rn
+    child_alg3.children[25]=obj.int_succes
+    child_alg3.children[26]=obj.moy_succes
+    Slider_vc_rn.on_change('value', lambda attr, old, new: update_vc_rn2(new_df))
+ 
+
+
 def r_neur_maker(new_df,nb_cv_rn):
     #instanciation de l'objet
     obj=Algo_Var_Num(new_df)
@@ -433,7 +494,7 @@ text_for_alg3=""
 your_alg3=Div(text=text_for_alg3)
 
 #creation du layout correspondant
-child_alg3=layout([your_alg3],[],[line],[Previsualisation_data],[line],[sdl],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[])
+child_alg3=layout([your_alg3],[],[line],[Previsualisation_data],[line],[sdl],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[])
 
 #creation de l'algo
 onglet4 = Panel(child=child_alg3, title="ALGO 3")
