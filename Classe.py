@@ -28,21 +28,17 @@ from bokeh.models import ColumnDataSource, FileInput
 from bokeh.transform import factor_cmap
 from bokeh.palettes import Spectral10
 from bokeh.models import HoverTool, Div,Panel,Tabs
-from bokeh.models.widgets import MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown,StringFormatter,SumAggregator, DataCube,GroupingInfo
+from bokeh.models.widgets import Paragraph,MultiSelect, Select, RangeSlider, Button, DataTable, DateFormatter,RadioGroup, TableColumn, Dropdown,StringFormatter,SumAggregator, DataCube,GroupingInfo
 
 class Algo_Var_Cat():
  
     #-------------------------------------------------------------------------
     #Initialisation des données 
     #-------------------------------------------------------------------------
-    def __init__(self,df,var_cible,size=-1):
+    def __init__(self,df,size=-1):
         self.df=df
-        self.var_cible=var_cible
-        #dernière colonne est celle des Y
-        if (self.var_cible!=self.df.iloc[:,-1].name) :
-            self.df['classe']=df[self.var_cible]
-            self.df=self.df.drop(self.var_cible,axis='columns')
-            self.var_cible='classe'
+        self.var_cible=self.df.columns[-1]
+        
         #initialisation de la taille de l'ech train :
         #print(self.df)
         if (size==-1) : 
@@ -53,21 +49,20 @@ class Algo_Var_Cat():
         #print(dfTrain, dfTest)
         
         #Séparer X et Y :
-        self.y=df.iloc[:,-1]
-        self.X=df.iloc[:,0:(len(self.df.columns)-1)]
+        self.y=self.df.iloc[:,-1]
+        self.X=self.df.iloc[:,0:(len(self.df.columns)-1)]
         self.yTrain=dfTrain.iloc[:,-1]
         self.XTrain=dfTrain.iloc[:,0:(len(self.df.columns)-1)]
         self.yTest=dfTest.iloc[:,-1]
         self.XTest=dfTest.iloc[:,0:(len(self.df.columns)-1)]
         
-        #print(self.XTrain,self.yTrain)
-        
-        test = self.yTrain.value_counts(normalize=True)
+        train = self.yTrain.value_counts(normalize=True)
+        test = self.yTest.value_counts(normalize=True)
         
         #distribution des classes
         self.distrib1=Div(text="<h4>Distribution des classes de la variables cible :</h4>")
         self.distrib2=Div(text="Classe d'entrainement : <br/>")
-        temp=pandas.DataFrame({"var":test.index,"distribution":test.values})
+        temp=pandas.DataFrame({"var":train.index,"distribution":train.values})
         columns=[TableColumn(field=Ci, title=Ci) for Ci in temp.columns] 
         self.distrib3=DataTable(source=ColumnDataSource(temp),columns=columns)
         self.distrib4=Div(text="Classe de test : <br/>")
@@ -78,7 +73,21 @@ class Algo_Var_Cat():
     #-------------------------------------------------------------------------
     #Création de l'arbre de décision et de la prédiction
     #-------------------------------------------------------------------------
-    def Arbre_decision(self,nb_feuille=2,nb_cross_val=10):
+    def Arbre_decision(self,nb_feuille=2,nb_cross_val=3):
+        
+        self.msg=Paragraph(text="""Vous êtes dans la partie réservé à la prédiction d'une variable 
+                           qualitative à l'aide d'un arbre de décicion. Dans cet onglet vous trouverez 
+                           tout d'abord une pré-visualisation des données sur lesquelles va 
+                           s'appliquer l'algorithme. Puis vous pourrez observer la distribution 
+                           de la variables ciible pour l'échantillon d'apprentissage et l'échantillon test.
+                           Aprés la création de l'arbre de décision, nous l'affichins à l'aide d'une image,
+                           ainsi que la liste de l'importance des variables. 
+                           Afin de savoir si votre modèle est bon ou non, vous retrouverez la matrice de 
+                           confusion, le taux de reconnaissance et le taux d'erreur, le rappel et la 
+                           précision par classe. Enfin vous pourrez vous même 
+                           faire de la cross validation selon deux critères le R2 ou le MSE, utilisez 
+                           juste le slider pour confirmer que votre modèle est bon ou non !""",width=1200, height=100)
+
         #classe arbre de décision
         #instanciation - objet arbre de décision
         #max_depth = nombre de feuille de l'arbre possible de demander à l'utilisateur
@@ -104,8 +113,8 @@ class Algo_Var_Cat():
 
         plt.figure()
         plot_tree(dtree,feature_names = list(self.df.columns[:-1]),filled=True)
-        plt.savefig('tree_high_dpi', dpi=95)
-        self.tree= Div(text="""<img src="C:/Users/ameli/Downloads/tree_high_dpi.jpg">""", width=150, height=150)
+        plt.savefig('tree.jpg', dpi=95)
+        self.tree= Div(text="""<img src="tree.jpg">""", width=150, height=150)
         
         
         #-------------------------------------------------------------------------
@@ -179,8 +188,11 @@ class Algo_Var_Cat():
         #évaluation en validation croisée : 
         # paramètre par défaut : nb_cross_val=10
         succes = model_selection.cross_val_score(dtree,self.X,self.y,cv=nb_cross_val,scoring='accuracy')
+        print(dtree)
+        print(self.X,self.y)
         #détail des itérations
         self.int_succes=Div(text="<h4>Succès de la validation croisée :</h4>"+ str(succes))
+        print(succes)
         #moyenne des taux de succès = estimation du taux de succès en CV
         self.moy_succes=Div(text="<h4>Moyenne des succès :</h4>" + str(round(succes.mean(),4))) 
 
@@ -189,6 +201,18 @@ class Algo_Var_Cat():
     #-------------------------------------------------------------------------  
     def Analyse_Discriminante(self,nb_cross_val=10):
         
+        self.msg=Paragraph(text="""Vous êtes dans la partie réservé à la prédiction d'une variable 
+                           qualitative à l'aide d'une analyse discriminante. Dans cet onglet vous trouverez 
+                           tout d'abord une pré-visualisation des données sur lesquelles va 
+                           s'appliquer l'algorithme. Puis vous pourrez observer la distribution 
+                           de la variables ciible pour l'échantillon d'apprentissage et l'échantillon test.
+                           Aprés l'analyse discriminante, nous l'affichons à l'aide d'une table les coefficients 
+                           et les intercepts.                     
+                           Afin de savoir si votre modèle est bon ou non, vous retrouverez la matrice de 
+                           confusion, le taux de reconnaissance et le taux d'erreur. Enfin vous pourrez vous même 
+                           faire de la cross validation selon deux critères le R2 ou le MSE, utilisez 
+                           juste le slider pour confirmer que votre modèle est bon ou non !""",width=1200, height=100)
+
         #classe LDA
         #instanciation 
         lda = LinearDiscriminantAnalysis()
@@ -206,7 +230,6 @@ class Algo_Var_Cat():
         final=pandas.concat([tmp2,tmp])
         self.coefT=Div(text="<h4>Table des coefficients et des intercepts : </h4>")
         
-
         d = dict()
         d["affichage"]= ['','','','','']
         d["var"]=['Constante', 'area','parameter','compactness',"len_kernel"]
@@ -236,7 +259,7 @@ class Algo_Var_Cat():
         
         d["var"]=self.df[str(self.var_cible)].unique()
         for i in range(len(d["var"])):
-            d[d["var"][i]]=mcSmNumpy[0]
+            d[d["var"][i]]=mcSmNumpy[i]
             d["affichage"].append("")
             
         source = ColumnDataSource(data=d)
@@ -252,7 +275,7 @@ class Algo_Var_Cat():
         self.Tx_reconnaissance=Div(text="<h4>Taux de reconnaissance :</h4> " + str(round(accSm,4)))
                 
         #calcul du taux d'erreur
-        self.Tx_erreur=Div(text="<h4>Taux d'erreur :</h4><br/>" + str(1.0-metrics.accuracy_score(self.yTest,ypred)))
+        self.Tx_erreur=Div(text="<h4>Taux d'erreur :</h4><br/>" + str(round(1.0-metrics.accuracy_score(self.yTest,ypred),4)))
         
         #calcul des sensibilité (rappel) et précision par classe
         self.rapport=Div(text="<h4>Rapport sur la qualité de prédiction : </h4>"+str(metrics.classification_report(self.yTest,ypred)))
@@ -272,8 +295,27 @@ class Algo_Var_Cat():
     #-------------------------------------------------------------------------
     #Création de la regressionn logistiques binaire
     #-------------------------------------------------------------------------  
-    def Regression_log(self,multi,alpha=0.1,nb_cross_val=10):
+    def Regression_log(self,nb_cross_val=10):
         
+        self.msg=Paragraph(text="""Vous êtes dans la partie réservé à la prédiction d'une variable 
+                           qualitative à l'aide d'une régression logistique. Dans cet onglet vous trouverez 
+                           tout d'abord une pré-visualisation des données sur lesquelles va 
+                           s'appliquer l'algorithme. Puis vous pourrez observer la distribution 
+                           de la variables cible pour l'échantillon d'apprentissage et l'échantillon test.
+                           Aprés la régression logistique, nous l'affichons à l'aide d'une table les coeficients
+                           de chaque variable.
+                           ainsi que la liste de l'importance des variables. 
+                           Afin de savoir si votre modèle est bon ou non, vous retrouverez la matrice de 
+                           confusion, le taux de reconnaissance et le taux d'erreur, le rappel et la 
+                           précision par classe. Enfin vous pourrez vous même 
+                           faire de la cross validation selon deux critères le R2 ou le MSE, utilisez 
+                           juste le slider pour confirmer que votre modèle est bon ou non !""",width=1200, height=100)
+
+        #Test si la variable cible est multiclasse (+ de 2 niveaux de modalités)
+        if (len(self.df[str(self.var_cible)].unique())==2) :
+            multi=False
+        else : 
+            multi=True
         #instanciation
         stds = preprocessing.StandardScaler()
         #transformation centrer et reduire
@@ -309,8 +351,9 @@ class Algo_Var_Cat():
             #log-vraisemblance
             log_likelihood = np.sum(self.yTrain*np.log(proba1)+(1.0-self.yTrain)*np.log(1.0-proba1))
             self.log_vraisemblance=Div(text="<h4>La log-vraisemblance vaut : </h4>"+str(round(log_likelihood,4)))
+        else :
+            self.log_vraisemblance=Div(text="")
             
-        
         #-------------------------------------------------------------------------
         #Prédiction : 
         #-------------------------------------------------------------------------
@@ -354,7 +397,7 @@ class Algo_Var_Cat():
             mcSmNumpy = mcSm.values
             #taux de reconnaissance
             accSm = np.sum(np.diagonal(mcSmNumpy))/np.sum(mcSmNumpy)
-            self.Tx_reconnaissance=Div(text="<h4>Taux de reconnaissance : </h4>" + str(accSm))
+            self.Tx_reconnaissance=Div(text="<h4>Taux de reconnaissance : </h4>" + str(round(accSm,4)))
             #taux d'erreur
             errSm = 1.0 - accSm
             self.Tx_erreur=Div(text="<h4>Taux d'erreur : </h4><br/>"+str(round(errSm,4)))
@@ -388,7 +431,7 @@ class Algo_Var_Cat():
             
             d["var"]=self.df[str(self.var_cible)].unique()
             for i in range(len(d["var"])):
-                d[d["var"][i]]=mcSm[0]
+                d[d["var"][i]]=mcSm[i]
                 d["affichage"].append("")
                 
             source = ColumnDataSource(data=d)
@@ -409,6 +452,8 @@ class Algo_Var_Cat():
             #rapport sur la qualité de prédiction
             self.rapport=Div(text="<h4>Rapport sur la qualité de prédiction : </h4>" + str(metrics.classification_report(self.yTest,predSk)))
             
+            self.fig2= Div(text="")
+            self.aucSm2=Div(text="")
         #-------------------------------------------------------------------------
         #Validation croisée : 
         #-------------------------------------------------------------------------
