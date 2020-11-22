@@ -53,7 +53,9 @@ class Algo_Var_Num():
         self.y=df.iloc[:,-1]
         self.X=df.iloc[:,0:(len(self.df.columns)-1)]
         self.X = pandas.get_dummies(data=self.X, drop_first=True)
-        self.XTrain, self.XTest, self.yTrain, self.yTest = train_test_split(self.X, self.y, test_size=0.20, random_state = 5)
+        self.XTrain, self.XTest, self.yTrain, self.yTest = train_test_split(self.X, self.y, test_size=0.20, random_state = 1)
+        #utilisé pour l'anova
+        self.dfTrain, self.dfTest = train_test_split(self.df,test_size=0.20,random_state=1)
 
         '''
         if (size==-1) : 
@@ -234,13 +236,22 @@ class Algo_Var_Num():
 
 
     def Anova_Desequilibre(self):
-        ystr = str(self.yTrain.name)
+        #on réalise un découpage dans la fonction 
+        yTrain=self.dfTrain.iloc[:,-1]
+        XTrain=self.dfTrain.iloc[:,0:(len(self.df.columns)-1)]
+        yTest=self.dfTest.iloc[:,-1]
+        XTest=self.dfTest.iloc[:,0:(len(self.df.columns)-1)]
+        #on récupère le nom de la variable cible
+        ystr = str(yTrain.name)
         var_qual = ''
-        for col in self.XTrain.columns: 
+        #boucle pour récupérer le modele en string
+        for col in XTrain.columns: 
             var_qual += str(col)
             var_qual += '+'
         var_qual = var_qual[:-1]
         var = str(ystr + "~" + var_qual)
+        
+        #réalisation de l'anova avec le modele
         anova = ols(var, data = self.dfTrain)
         lm = anova.fit()
         table= sm.stats.anova_lm(lm)
@@ -251,30 +262,24 @@ class Algo_Var_Num():
         plt.show()
         y_test = self.dfTest[str(ystr)]
         x_test = self.dfTest
- 
-        
+        #réalisation des prédictions
         x_test = x_test.drop([str(ystr)],axis=1)
         pred = lm.predict(x_test)
         print(pred)
         
-        
-
+        '''
         pred.iloc[np.argsort(y_test)]
          # The mean squared error
         print("Mean squared error")
         print(mean_squared_error(y_test, pred))
         print("R2 score")
         print(r2_score(y_test, pred))   
+        '''
 
-
-        plt.plot(range(len(y_test)), pred.iloc[np.argsort(y_test)], color = "green") #Prédictions
-        plt.scatter(range(len(y_test)), np.sort(y_test), color = "red") #Données réelles
+        plt.scatter(range(len(y_test)), pred.iloc[np.argsort(y_test)], color = "green") #Prédictions
+        plt.plot(range(len(y_test)), np.sort(y_test), color = "red") #Données réelles
         plt.title("Y_pred en vert, y_test en rouge")
         plt.show()
-        #validation croisée
-        #val_cro = cross_val_score(aov, self.X, self.y, cv=5)
-        #print(val_cro)
-        #print(mean(val_cro))
         
 
    
