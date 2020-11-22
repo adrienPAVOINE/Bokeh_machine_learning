@@ -304,6 +304,17 @@ def reg_mult_maker(new_df,nb_cv):
     child_alg1.children[20]=Slider_vc
     child_alg1.children[21]=obj.val_cro
     child_alg1.children[22]=obj.mean_val_cro
+    child_alg1.children[23]=sdl
+    child_alg1.children[24]=sdl
+    child_alg1.children[25]=sdl
+    child_alg1.children[26]=sdl
+    child_alg1.children[27]=sdl
+    child_alg1.children[28]=sdl
+    child_alg1.children[29]=sdl
+    child_alg1.children[30]=sdl
+    child_alg1.children[31]=sdl
+    child_alg1.children[32]=sdl
+    child_alg1.children[33]=sdl
     Slider_vc.on_change('value', lambda attr, old, new: update_vc(new_df))
     
 
@@ -399,6 +410,8 @@ def knn_maker(new_df,kv, nb_cv_knn):
     child_alg2.children[18]=Slider_vc_knn
     child_alg2.children[19]=obj.val_cro
     child_alg2.children[20]=obj.mean_val_cro
+    child_alg2.children[21]=sdl
+    child_alg2.children[22]=sdl
     Slider_vc_knn.on_change('value', lambda attr, old, new: update_kv(new_df))
     Slider_kv.on_change('value', lambda attr, old, new: update_kv(new_df))
 
@@ -496,6 +509,14 @@ def r_neur_maker(new_df,nb_cv_rn):
     child_alg3.children[18]=Slider_vc_rn
     child_alg3.children[19]=obj.val_cro
     child_alg3.children[20]=obj.mean_val_cro
+    child_alg3.children[21]=sdl
+    child_alg3.children[22]=sdl
+    child_alg3.children[23]=sdl
+    child_alg3.children[24]=sdl
+    child_alg3.children[25]=sdl
+    child_alg3.children[26]=sdl
+    child_alg3.children[27]=sdl
+    child_alg3.children[28]=sdl
     Slider_vc_rn.on_change('value', lambda attr, old, new: update_vc_rn(new_df))
         
 
