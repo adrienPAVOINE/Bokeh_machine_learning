@@ -155,7 +155,8 @@ def update_algos():
             #si la var cible est textuelle alors on execute des fonctions qui vont lancer les algos appropriés
             if(var_type=='String'):
                 nb_cv=Slider_vc.value
-                decision_tree_maker(new_df,nb_cv)
+                nb_f=Slider_f.value
+                decision_tree_maker(new_df,nb_f,nb_cv)
                 analyse_disc_maker(new_df,nb_cv)
                 reg_log_maker(new_df,nb_cv)
                 
@@ -212,6 +213,8 @@ onglet1= Panel(child=child_onglet1,title="Welcome !")
 #                    ONGLET 2 - ALGO N°1                           #######################
 ####################################################################
 
+#Slider pour choisir le nombre de niveaux de l'arbre :
+Slider_f=Slider(start=1, end=15, value=2, step=1, title="Nombre de niveau de l'arbre de décision ")
 
 #Slider commun pour validation croisée :
 Slider_vc=Slider(start=0, end=10, value=5, step=1, title="Cross Validation")
@@ -225,20 +228,23 @@ def update_vc(new_df):
     
 def update_vc2(new_df):
     #si le nb de vc a changé alors on relance l'algo et on change les valeurs des childrens dans le layout
+    nb_f=Slider_f.value
     nb_cv=Slider_vc.value
     obj=Algo_Var_Cat(new_df)
-    obj.Arbre_decision(nb_cross_val=nb_cv)
-    child_alg1.children[31]=obj.int_succes
-    child_alg1.children[32]=obj.moy_succes
+    obj.Arbre_decision(nb_feuille=nb_f,nb_cross_val=nb_cv)
+    child_alg1.children[18]=obj.treeT
+    child_alg1.children[19]=obj.tree
+    child_alg1.children[32]=obj.int_succes
+    child_alg1.children[33]=obj.moy_succes
     
 
 #Arbre de décision (cas target QL)--------------------------------------------
 
 #fonction qui execute le decision_tree sur le df bien formaté comme il faut
-def decision_tree_maker(new_df,nb_cv):
+def decision_tree_maker(new_df,nb_f,nb_cv):
     
     obj=Algo_Var_Cat(new_df)
-    obj.Arbre_decision(nb_cross_val=nb_cv)
+    obj.Arbre_decision(nb_feuille=nb_f,nb_cross_val=nb_cv)
     
     child_alg1.children[1]=obj.msg
     
@@ -251,23 +257,25 @@ def decision_tree_maker(new_df,nb_cv):
     child_alg1.children[14]=obj.distribpred1
     child_alg1.children[15]=obj.distribpred2
     child_alg1.children[16]=sdl
-    child_alg1.children[17]=obj.treeT
-    child_alg1.children[18]=obj.tree
-    child_alg1.children[19]=sdl
-    child_alg1.children[20]=obj.coef1
-    child_alg1.children[21]=obj.coef
-    child_alg1.children[22]=sdl
-    child_alg1.children[23]=obj.matrice_confusion
-    child_alg1.children[24]=obj.cube
-    child_alg1.children[25]=sdl
-    child_alg1.children[26]=obj.Tx_reconnaissance
-    child_alg1.children[27]=obj.Tx_erreur
-    child_alg1.children[28]=obj.rapclass
-    child_alg1.children[29]=obj.precclasse
-    child_alg1.children[30]=Slider_vc
-    child_alg1.children[31]=obj.int_succes
-    child_alg1.children[32]=obj.moy_succes
+    child_alg1.children[17]=Slider_f
+    child_alg1.children[18]=obj.treeT
+    child_alg1.children[19]=obj.tree
+    child_alg1.children[20]=sdl
+    child_alg1.children[21]=obj.coef1
+    child_alg1.children[22]=obj.coef
+    child_alg1.children[23]=sdl
+    child_alg1.children[24]=obj.matrice_confusion
+    child_alg1.children[25]=obj.cube
+    child_alg1.children[26]=sdl
+    child_alg1.children[27]=obj.Tx_reconnaissance
+    child_alg1.children[28]=obj.Tx_erreur
+    child_alg1.children[29]=obj.rapclass
+    child_alg1.children[30]=obj.precclasse
+    child_alg1.children[31]=Slider_vc
+    child_alg1.children[32]=obj.int_succes
+    child_alg1.children[33]=obj.moy_succes
     Slider_vc.on_change('value', lambda attr, old, new: update_vc2(new_df))
+    Slider_f.on_change('value', lambda attr, old, new: update_vc2(new_df))
 
 #regression linéaire multiple (cas target QT)---------------------------------
     
@@ -429,8 +437,8 @@ def update_vc_rn2(new_df):
     nb_cv_rn=Slider_vc_rn.value
     obj=Algo_Var_Cat(new_df) 
     obj.Regression_log(nb_cv_rn)
-    child_alg3.children[25]=obj.int_succes
-    child_alg3.children[26]=obj.moy_succes  
+    child_alg3.children[27]=obj.int_succes
+    child_alg3.children[28]=obj.moy_succes  
     
 
 #Reg Log (cas target QL)
@@ -457,9 +465,11 @@ def reg_log_maker(new_df,nb_cv_rn):
     child_alg3.children[21]=sdl
     child_alg3.children[22]=obj.Tx_reconnaissance
     child_alg3.children[23]=obj.Tx_erreur
-    child_alg3.children[24]=Slider_vc_rn
-    child_alg3.children[25]=obj.int_succes
-    child_alg3.children[26]=obj.moy_succes
+    child_alg3.children[24]=obj.fig2
+    child_alg3.children[25]=obj.aucSm2
+    child_alg3.children[26]=Slider_vc_rn
+    child_alg3.children[27]=obj.int_succes
+    child_alg3.children[28]=obj.moy_succes
     Slider_vc_rn.on_change('value', lambda attr, old, new: update_vc_rn2(new_df))
  
 
@@ -494,7 +504,7 @@ text_for_alg3=""
 your_alg3=Div(text=text_for_alg3)
 
 #creation du layout correspondant
-child_alg3=layout([your_alg3],[],[line],[Previsualisation_data],[line],[sdl],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[])
+child_alg3=layout([your_alg3],[],[line],[Previsualisation_data],[line],[sdl],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[])
 
 #creation de l'algo
 onglet4 = Panel(child=child_alg3, title="ALGO 3")
