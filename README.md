@@ -1,3 +1,3 @@
 # projetPythonInterface
 
-Je fais un test !
+Interface d'analyse de données utilisant Bokeh. L'interface permet l'import d'un jeu de données, l'utilisateur choisit ensuite sa variable à prédire. En fonction de sa variable à prédire et des variable explicatives, l'interface propose 3 algorithmes adaptés. Les algorithmes implémentés sont la régression linéaire multiple, les k plus proches voisins, les réseaux de neurones, la régression logistiques, les arbres de décisions... L'utilisateur à accès à des widgets pour changer le paramétrage de ses algorithmes mais aussi pour gérer lui même la cross validation de l'algorithme
